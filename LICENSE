@@ -19,9 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-The MIT License covers the code in this repository (sql/, scripts/) and the
-project's own reference files (data/reference/countries_ru.csv,
-data/reference/country_patterns.csv). Third-party data keep their own licences:
-EM-DAT (CC BY-NC-ND 4.0, CRED/UCLouvain), PubMed metadata (U.S. National
-Library of Medicine), map geometry (Natural Earth, public domain; datamaps, MIT).
