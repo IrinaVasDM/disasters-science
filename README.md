@@ -18,7 +18,9 @@ This project links the [EM-DAT](https://www.emdat.be) international disaster dat
 
 **Reproduce:** `createdb disasters_science && psql -d disasters_science -f sql/build_all.sql` (details in the Russian section below). Raw EM-DAT and PubMed files are not included in the repository: `scripts/01_emdat_to_csv.py` converts the EM-DAT archive (download it from [UCLouvain Dataverse](https://doi.org/10.14428/DVN/I0LTPH)) and `scripts/02_fetch_pubmed.py` downloads PubMed records.
 
-**Licences.** Code: [MIT](LICENSE). EM-DAT data © CRED/UCLouvain, CC BY-NC-ND 4.0 (Delforge et al., 2025, doi:[10.1016/j.ijdrr.2025.105509](https://doi.org/10.1016/j.ijdrr.2025.105509)). PubMed metadata: U.S. National Library of Medicine. Map geometry: Natural Earth.
+**Capacity-adjusted model.** A second model adds each country's research capacity (World Bank scientific articles per year): R² rises from 0.40 to 0.54. 44 of the 67 deficit countries stay in deficit. Countries such as Afghanistan, Guatemala and Chad drop out, because they have little research of any kind. Russia, Poland, Egypt and Saudi Arabia enter: they have strong science but little disaster research. The remaining deficit shifts towards Eastern Europe and Latin America, where national-language journals that PubMed does not index may explain part of it (`sql/09_capacity.sql`).
+
+**Licences.** Code: [MIT](LICENSE). EM-DAT data © CRED/UCLouvain, CC BY-NC-ND 4.0 (Delforge et al., 2025, doi:[10.1016/j.ijdrr.2025.105509](https://doi.org/10.1016/j.ijdrr.2025.105509)). PubMed metadata: U.S. National Library of Medicine. Research capacity: World Bank WDI, CC BY 4.0. Map geometry: Natural Earth.
 
 ---
 
@@ -43,6 +45,19 @@ This project links the [EM-DAT](https://www.emdat.be) international disaster dat
 - **Техногенные катастрофы почти не изучаются**: в ДР Конго, Индонезии, Египте, Иране по 150–170 таких бедствий и ни одной статьи (запрос 3 в `sql/06_examples.sql`).
 - **«Парашютная наука»**: у статей о Гаити местный автор есть лишь в 15 % случаев (авторы из США — в 73 статьях, из Гаити — в 17); по Африке в целом — 63,5 %.
 
+## С поправкой на научный потенциал страны
+
+У стран с маленькой наукой мало статей обо всём, а не только о бедствиях. Поэтому есть вторая модель: в регрессию добавлено среднегодовое число научных статей страны по данным Всемирного банка (`sql/09_capacity.sql`, функция `gap_analysis_adj()`). Дефицит в этой модели означает, что статей меньше половины ожидаемого при такой нагрузке бедствиями **и** таком научном потенциале. Иначе говоря, это недостаток внимания именно к бедствиям.
+
+- Научный потенциал заметно улучшает модель: на тех же 187 странах R² растёт с 0,40 до 0,54, коэффициент при потенциале 0,25 (SE 0,03). Для 30 стран и территорий данных Всемирного банка нет, в их числе Тайвань и Гонконг.
+- Из 67 стран с дефицитом в дефиците остаются 44. Ещё 11 переходят в категорию «в пределах ожидаемого»: у них мало статей, потому что мало науки вообще. Это Афганистан, Гватемала, Гондурас, Доминиканская Республика, Папуа — Новая Гвинея, Малави, Нигер, Лаос, Чад, Намибия, Ямайка. Для них нужна помощь в развитии науки, а не только смена тем исследований. Ещё 10 малых государств переходят в категорию «мало данных».
+- Впервые в дефиците оказываются 9 стран с сильной наукой, где бедствия изучаются мало: Россия, Польша, Бельгия, Саудовская Аравия, Казахстан, Египет, Литва, Латвия, Тунис. У России 118 бедствий и 10 статей при ожидаемых 39.
+- Дефицит при всех 8 вариантах (4 меры нагрузки × 2 меры потенциала) держится у 27 стран: Колумбия, Россия, Аргентина, Румыния, Мозамбик, Таджикистан, Алжир, Болгария, Панама, Коста-Рика, Судан, Чехия, Парагвай, Сербия, Уругвай и другие.
+- **Осторожно:** после поправки дефицит смещается в Восточную Европу и Латинскую Америку, где много публикуют на национальных языках. PubMed эти журналы почти не видит, поэтому часть дефицита может объясняться источником данных. Проверить это можно по eLIBRARY, LILACS и SciELO.
+- Изученными больше ожидаемого остаются Япония (в 13 раз), Турция (в 14), США (в 8,5). Гаити поднимается на первое место (в 23 раза): науки в стране почти нет, а статей о ней много, и пишут их в основном иностранные авторы.
+
+Полный вывод: `results/09_capacity_output.txt`.
+
 ## Что в папке
 
 | Путь | Что это |
@@ -58,6 +73,9 @@ This project links the [EM-DAT](https://www.emdat.be) international disaster dat
 | `sql/06_examples.sql` | 10 примеров аналитических запросов |
 | `sql/07_robustness.sql` | проверки устойчивости: 11 вариантов допущений, функция `gap_analysis_variant()`, пуассоновская регрессия |
 | `sql/08_report_numbers.sql` | все числа аналитического отчёта одним скриптом (по разделам) |
+| `sql/09_capacity.sql` | модель с поправкой на научный потенциал страны: таблица `country_capacity`, функция `gap_analysis_adj()`, сравнение с базовой моделью |
+| `scripts/04_fetch_worldbank.py` | скачивает показатели Всемирного банка: научные статьи, ВВП по ППС, население |
+| `data/reference/worldbank_capacity.csv` | эти показатели по странам за 2000–2024 годы |
 | `results/` | вывод запросов на вашей базе: примеры, проверки устойчивости, числа отчёта |
 | `data/validation/validation_sample.csv` | 90 случайных статей (по 30 на способ определения страны) для проверки двумя кодировщиками |
 | `scripts/01_emdat_to_csv.py` | EM-DAT .xlsx → CSV |
@@ -122,6 +140,7 @@ SELECT * FROM gap_analysis(
 | `hazards`, `emdat_type_hazard`, `emdat_subtypes_ru` | | укрупнённые типы бедствий и соответствие типам EM-DAT |
 | `classification_rules` | 62 | правила разметки статей — их можно менять и перезапускать `03_classify.sql` |
 | `dataset_info` | | версия EM-DAT, дата выгрузки и точный запрос PubMed |
+| `country_capacity` | 14 493 | показатели Всемирного банка: научные статьи, ВВП по ППС, население (создаётся `09_capacity.sql`) |
 
 ## Как обновить данные
 
@@ -132,7 +151,7 @@ SELECT * FROM gap_analysis(
 
 - **Почему PubMed, а не OpenAlex.** OpenAlex теперь ограничивает бесплатные запросы (около 100 в день без ключа), а у PubMed есть географические рубрики MeSH: индексаторы указывают, где проводилось исследование. По ним определено 80 % связей «статья — страна»; остальные — по названию (9 %) и аннотации (11 %, только если страна там единственная или упомянута дважды).
 - **Учитываются** статьи, где назван конкретный тип бедствия, или «бедствие» вообще, но не в контексте COVID-19, терактов и войн. Эпидемии из EM-DAT исключены.
-- **Ожидаемое число статей** — регрессия ln(1 + статьи) на ln(1 + нагрузка) по всем странам с бедствиями за период. Статьи считаются с лагом +1 год.
+- **Ожидаемое число статей** — регрессия ln(1 + статьи) на ln(1 + нагрузка) по всем странам с бедствиями за период. Статьи считаются с лагом +1 год. Во второй модели добавлен ln(1 + научный потенциал): среднегодовое число научных статей страны (Всемирный банк, IP.JRN.ARTC.SC) или, для проверки, ВВП по ППС. У стран с очень малым числом бедствий ожидаемое число статей во второй модели задаёт в основном потенциал, поэтому дефицит у таких стран, как Люксембург или Катар, — слабый сигнал.
 - PubMed почти не видит национальные журналы, в том числе русскоязычные. Дефицит у стран с сильной местной наукой (Россия, Латинская Америка) может быть завышен.
 - Статьи о давних бедствиях (например, о Чернобыле) относятся к стране, но не к году события.
 
@@ -140,3 +159,4 @@ SELECT * FROM gap_analysis(
 
 - EM-DAT: Delforge D. et al. EM-DAT: The Emergency Events Database. *International Journal of Disaster Risk Reduction*, 2025. doi:[10.1016/j.ijdrr.2025.105509](https://doi.org/10.1016/j.ijdrr.2025.105509). Архив: doi:[10.14428/DVN/I0LTPH](https://doi.org/10.14428/DVN/I0LTPH). Лицензия CC BY-NC-ND 4.0: только некоммерческое использование со ссылкой на источник, без распространения изменённых данных.
 - PubMed: National Library of Medicine, E-utilities. Аннотации принадлежат авторам и издателям и используются здесь для поиска.
+- Научный потенциал: World Bank, World Development Indicators (IP.JRN.ARTC.SC — по данным National Science Foundation; NY.GDP.MKTP.PP.KD; SP.POP.TOTL). Лицензия CC BY 4.0.
