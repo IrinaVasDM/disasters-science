@@ -1,0 +1,287 @@
+SELECT country, region, events, deaths, papers, expected, gap_ratio
+FROM gap_analysis(2000, 2024, 'natural', 'events', 'all')
+WHERE category = 'Дефицит исследований'
+ORDER BY events DESC
+LIMIT 15;
+         country          | region  | events | deaths | papers | expected | gap_ratio 
+--------------------------+---------+--------+--------+--------+----------+-----------
+ Афганистан               | Азия    |    154 |  12852 |     10 |     22.2 |      0.47
+ Колумбия                 | Америка |    130 |   3380 |      4 |     19.2 |      0.25
+ Гватемала                | Америка |     86 |   3531 |      3 |     13.6 |      0.27
+ Аргентина                | Америка |     82 |    399 |      2 |     13.0 |      0.21
+ Румыния                  | Европа  |     72 |  10699 |      2 |     11.6 |      0.24
+ Мозамбик                 | Африка  |     71 |   2881 |      1 |     11.5 |      0.16
+ Боливия                  | Америка |     69 |   1108 |      2 |     11.2 |      0.25
+ ДР Конго                 | Африка  |     67 |   4835 |      2 |     10.9 |      0.25
+ Мадагаскар               | Африка  |     66 |   2043 |      2 |     10.8 |      0.25
+ Доминиканская Республика | Америка |     58 |   1042 |      4 |      9.6 |      0.47
+ Таджикистан              | Азия    |     57 |    349 |      0 |      9.5 |      0.10
+ Гондурас                 | Америка |     54 |    556 |      2 |      9.1 |      0.30
+ Папуа — Новая Гвинея     | Океания |     53 |   1312 |      2 |      8.9 |      0.30
+ Малави                   | Африка  |     52 |   2371 |      3 |      8.8 |      0.41
+ Ангола                   | Африка  |     51 |    963 |      0 |      8.6 |      0.10
+(15 rows)
+
+SELECT country, affected, papers, papers_help, expected, gap_ratio, category
+FROM gap_analysis(2000, 2024, 'natural', 'affected', 'help')
+ORDER BY affected DESC
+LIMIT 15;
+  country  |  affected  | papers | papers_help | expected | gap_ratio |         category          
+-----------+------------+--------+-------------+----------+-----------+---------------------------
+ Китай     | 1770710845 |    710 |         179 |      4.3 |     33.75 | Изучено больше ожидаемого
+ Индия     | 1142883339 |    130 |          48 |      4.1 |      9.56 | Изучено больше ожидаемого
+ Филиппины |  214130227 |     42 |          15 |      3.4 |      3.64 | Изучено больше ожидаемого
+ Бангладеш |  181482735 |     46 |          13 |      3.3 |      3.23 | Изучено больше ожидаемого
+ США       |  109690625 |   1437 |         431 |      3.1 |    104.36 | Изучено больше ожидаемого
+ Пакистан  |   95989276 |     58 |          19 |      3.1 |      4.89 | Изучено больше ожидаемого
+ Таиланд   |   81885206 |     64 |          29 |      3.0 |      7.44 | Изучено больше ожидаемого
+ Эфиопия   |   80446600 |     27 |           6 |      3.0 |      1.74 | В пределах ожидаемого
+ Бразилия  |   57268919 |     28 |          11 |      2.9 |      3.08 | Изучено больше ожидаемого
+ Вьетнам   |   46219384 |     28 |           1 |      2.8 |      0.52 | В пределах ожидаемого
+ Индонезия |   43633813 |    115 |          42 |      2.8 |     11.30 | Изучено больше ожидаемого
+ КНДР      |   41318854 |      0 |           0 |      2.8 |      0.26 | Дефицит исследований
+ Сомали    |   36614604 |      5 |           2 |      2.7 |      0.80 | В пределах ожидаемого
+ Нигерия   |   35270350 |      8 |           4 |      2.7 |      1.34 | В пределах ожидаемого
+ Кения     |   34785891 |     26 |           7 |      2.7 |      2.15 | Изучено больше ожидаемого
+(15 rows)
+
+WITH d AS (
+    SELECT iso3, hazard_code, sum(events) AS events, sum(deaths) AS deaths
+    FROM v_disasters_country_year
+    WHERE year BETWEEN 2000 AND 2024
+    GROUP BY iso3, hazard_code
+),
+p AS (
+    SELECT v.iso3, h AS hazard_code, count(*) AS papers
+    FROM v_publication_country v, unnest(v.hazard_codes) AS h
+    WHERE v.year BETWEEN 2000 AND 2025
+    GROUP BY v.iso3, h
+)
+SELECT c.name_ru AS country, hz.name_ru AS hazard, d.events, d.deaths, COALESCE(p.papers, 0) AS papers
+FROM d
+JOIN countries c USING (iso3)
+JOIN hazards hz USING (hazard_code)
+LEFT JOIN p USING (iso3, hazard_code)
+WHERE d.events >= 20 AND COALESCE(p.papers, 0) = 0
+ORDER BY d.events DESC;
+         country          |               hazard               | events | deaths | papers 
+--------------------------+------------------------------------+--------+--------+--------
+ ДР Конго                 | Техногенные катастрофы             |    171 |   6025 |      0
+ Индонезия                | Техногенные катастрофы             |    165 |   6900 |      0
+ Египет                   | Техногенные катастрофы             |    163 |   4612 |      0
+ Иран                     | Техногенные катастрофы             |    150 |   3953 |      0
+ Мексика                  | Техногенные катастрофы             |     98 |   2098 |      0
+ Филиппины                | Техногенные катастрофы             |     92 |   3121 |      0
+ Кения                    | Техногенные катастрофы             |     75 |   2065 |      0
+ Танзания                 | Техногенные катастрофы             |     73 |   2480 |      0
+ Уганда                   | Техногенные катастрофы             |     69 |   1822 |      0
+ Марокко                  | Техногенные катастрофы             |     67 |   1312 |      0
+ Колумбия                 | Техногенные катастрофы             |     66 |   1442 |      0
+ Судан                    | Техногенные катастрофы             |     62 |   1588 |      0
+ Непал                    | Техногенные катастрофы             |     59 |   1679 |      0
+ Таиланд                  | Техногенные катастрофы             |     56 |   1095 |      0
+ Алжир                    | Техногенные катастрофы             |     49 |   1175 |      0
+ Мадагаскар               | Ураганы, тайфуны, циклоны, торнадо |     48 |   1865 |      0
+ Камерун                  | Техногенные катастрофы             |     47 |   1237 |      0
+ Гвинея                   | Техногенные катастрофы             |     46 |    945 |      0
+ Афганистан               | Техногенные катастрофы             |     45 |   1212 |      0
+ Ангола                   | Наводнения                         |     44 |    892 |      0
+ Румыния                  | Наводнения                         |     43 |    234 |      0
+ Тунис                    | Техногенные катастрофы             |     43 |   1517 |      0
+ Сенегал                  | Техногенные катастрофы             |     43 |    942 |      0
+ Аргентина                | Наводнения                         |     42 |    151 |      0
+ Йемен                    | Техногенные катастрофы             |     42 |   1772 |      0
+ Зимбабве                 | Техногенные катастрофы             |     37 |    862 |      0
+ Боливия                  | Техногенные катастрофы             |     37 |    829 |      0
+ Йемен                    | Наводнения                         |     36 |   1422 |      0
+ Ангола                   | Техногенные катастрофы             |     35 |    823 |      0
+ Германия                 | Ураганы, тайфуны, циклоны, торнадо |     34 |    130 |      0
+ Мозамбик                 | Наводнения                         |     33 |   1585 |      0
+ Мали                     | Техногенные катастрофы             |     33 |    777 |      0
+ Гаити                    | Техногенные катастрофы             |     33 |    792 |      0
+ Эквадор                  | Техногенные катастрофы             |     32 |    603 |      0
+ Бурунди                  | Наводнения                         |     32 |    261 |      0
+ Алжир                    | Наводнения                         |     32 |   1413 |      0
+ Куба                     | Ураганы, тайфуны, циклоны, торнадо |     32 |     93 |      0
+ Гана                     | Техногенные катастрофы             |     31 |   1191 |      0
+ ЦАР                      | Техногенные катастрофы             |     29 |    835 |      0
+ Эквадор                  | Наводнения                         |     29 |    379 |      0
+ Панама                   | Наводнения                         |     29 |    108 |      0
+ Нигер                    | Наводнения                         |     29 |   1239 |      0
+ Венесуэла                | Техногенные катастрофы             |     29 |    811 |      0
+ Таджикистан              | Наводнения                         |     28 |    231 |      0
+ Мьянма                   | Техногенные катастрофы             |     28 |   1084 |      0
+ Руанда                   | Наводнения                         |     27 |    570 |      0
+ Судан                    | Наводнения                         |     27 |   1236 |      0
+ Доминиканская Республика | Наводнения                         |     26 |    787 |      0
+ Великобритания           | Ураганы, тайфуны, циклоны, торнадо |     26 |     93 |      0
+ Буркина-Фасо             | Техногенные катастрофы             |     25 |    526 |      0
+ ЮАР                      | Ураганы, тайфуны, циклоны, торнадо |     25 |    224 |      0
+ Малайзия                 | Техногенные катастрофы             |     24 |    786 |      0
+ Эфиопия                  | Техногенные катастрофы             |     24 |    633 |      0
+ Гватемала                | Техногенные катастрофы             |     24 |    542 |      0
+ Колумбия                 | Оползни, сели, лавины              |     24 |   1133 |      0
+ Сирия                    | Техногенные катастрофы             |     23 |    517 |      0
+ Афганистан               | Оползни, сели, лавины              |     23 |    979 |      0
+ Мали                     | Наводнения                         |     23 |    236 |      0
+ Болгария                 | Наводнения                         |     23 |     90 |      0
+ Гондурас                 | Наводнения                         |     22 |    306 |      0
+ Польша                   | Ураганы, тайфуны, циклоны, торнадо |     22 |     78 |      0
+ Италия                   | Ураганы, тайфуны, циклоны, торнадо |     22 |     73 |      0
+ КНДР                     | Наводнения                         |     22 |   2187 |      0
+ Саудовская Аравия        | Наводнения                         |     22 |    424 |      0
+ Коста-Рика               | Наводнения                         |     21 |     93 |      0
+ Кот-д’Ивуар              | Техногенные катастрофы             |     21 |    637 |      0
+ Сербия                   | Наводнения                         |     20 |     61 |      0
+ Мозамбик                 | Техногенные катастрофы             |     20 |    935 |      0
+ Босния и Герцеговина     | Наводнения                         |     20 |     58 |      0
+ Уругвай                  | Наводнения                         |     20 |     13 |      0
+(70 rows)
+
+SELECT c.region_ru AS region,
+       count(*)                                                  AS papers,
+       round(100.0 * avg(v.has_local_author::int), 1)            AS pct_local_author
+FROM v_publication_country v
+JOIN countries c USING (iso3)
+GROUP BY c.region_ru
+ORDER BY pct_local_author;
+ region  | papers | pct_local_author 
+---------+--------+------------------
+ Африка  |    184 |             63.0
+ Европа  |    942 |             69.2
+ Азия    |   3218 |             77.2
+ Америка |   2128 |             79.9
+ Океания |    434 |             87.8
+(5 rows)
+
+SELECT c.name_ru AS author_country, count(DISTINCT ac.pmid) AS papers
+FROM publication_countries pc
+JOIN publications p USING (pmid)
+JOIN publication_author_countries ac USING (pmid)
+JOIN countries c ON c.iso3 = ac.iso3
+WHERE pc.iso3 = 'HTI' AND p.is_included
+GROUP BY c.name_ru
+ORDER BY papers DESC
+LIMIT 10;
+ author_country | papers 
+----------------+--------
+ США            |     73
+ Гаити          |     17
+ Франция        |     14
+ Канада         |     12
+ Германия       |      3
+ Великобритания |      2
+ Бразилия       |      2
+ Ливан          |      1
+ Нидерланды     |      1
+ Швейцария      |      1
+(10 rows)
+
+SELECT y AS year,
+       (SELECT sum(events) FROM v_disasters_country_year v
+         WHERE v.year = y AND hazard_matches('natural', ARRAY[v.hazard_code]))      AS natural_events,
+       (SELECT count(*) FROM publications p
+         WHERE p.search_year = y AND p.is_included)                                  AS papers,
+       (SELECT count(*) FROM publications p
+         WHERE p.search_year = y AND p.is_included AND p.is_help)                    AS papers_help
+FROM generate_series(2000, 2025) AS y
+ORDER BY y;
+ year | natural_events | papers | papers_help 
+------+----------------+--------+-------------
+ 2000 |            386 |    130 |          35
+ 2001 |            357 |     84 |          15
+ 2002 |            404 |    118 |          29
+ 2003 |            354 |     89 |          29
+ 2004 |            347 |     98 |          29
+ 2005 |            429 |    162 |          58
+ 2006 |            401 |    241 |         100
+ 2007 |            411 |    263 |         101
+ 2008 |            348 |    274 |          93
+ 2009 |            343 |    243 |          86
+ 2010 |            391 |    298 |          77
+ 2011 |            327 |    315 |          83
+ 2012 |            347 |    381 |         107
+ 2013 |            335 |    399 |         113
+ 2014 |            320 |    455 |         132
+ 2015 |            381 |    431 |         110
+ 2016 |            325 |    438 |         110
+ 2017 |            346 |    447 |         106
+ 2018 |            320 |    465 |         105
+ 2019 |            399 |    452 |         105
+ 2020 |            399 |    535 |         119
+ 2021 |            430 |    524 |         105
+ 2022 |            417 |    507 |         125
+ 2023 |            440 |    520 |         106
+ 2024 |            430 |    676 |         167
+ 2025 |                |    871 |         284
+(26 rows)
+
+WITH t AS (
+    SELECT iso3, count(*) AS papers FROM v_publication_country GROUP BY iso3
+)
+SELECT round(100.0 * sum(papers) FILTER (WHERE rn <= 5) / sum(papers), 1) AS pct_top5,
+       string_agg(name_ru, ', ' ORDER BY rn) FILTER (WHERE rn <= 5)       AS top5
+FROM (SELECT t.*, c.name_ru, row_number() OVER (ORDER BY papers DESC) AS rn
+      FROM t JOIN countries c USING (iso3)) x;
+ pct_top5 |                 top5                  
+----------+---------------------------------------
+     56.3 | США, Япония, Китай, Турция, Австралия
+(1 row)
+
+SELECT p.search_year, p.title, p.journal, 'https://pubmed.ncbi.nlm.nih.gov/' || p.pmid AS url
+FROM v_publication_country v
+JOIN publications p USING (pmid)
+WHERE v.iso3 = 'BGD' AND 'flood' = ANY (v.hazard_codes) AND v.is_help
+ORDER BY p.search_year DESC;
+ search_year |                                                                      title                                                                      |                        journal                         |                   url                    
+-------------+-------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------+------------------------------------------
+        2025 | Mental health consequences of the 2024 Feni flash flood in Bangladesh: prevalence and risk factors.                                             | Frontiers in public health                             | https://pubmed.ncbi.nlm.nih.gov/41439097
+        2025 | Flood impact on men's mental health: evidence from flood-prone areas of Bangladesh.                                                             | Frontiers in public health                             | https://pubmed.ncbi.nlm.nih.gov/40247867
+        2025 | Livelihood disruption and psychological distress following the 2024 flash flood in Bangladesh.                                                  | Scientific reports                                     | https://pubmed.ncbi.nlm.nih.gov/40715421
+        2025 | The unforeseen tide: exploring mental health impacts of the 2024 flash flood in Bangladesh.                                                     | BMC public health                                      | https://pubmed.ncbi.nlm.nih.gov/40790479
+        2024 | Sea-level rise and mental health among coastal communities: A quantitative survey and conditional process analysis.                             | SSM - population health                                | https://pubmed.ncbi.nlm.nih.gov/38440106
+        2020 | Exploring mental health needs and services among affected population in a cyclone affected area in costal Bangladesh: a qualitative case study. | International journal of mental health systems         | https://pubmed.ncbi.nlm.nih.gov/32165918
+        2014 | Increasing the provision of mental health care for vulnerable, disaster-affected people in Bangladesh.                                          | BMC public health                                      | https://pubmed.ncbi.nlm.nih.gov/25011931
+        2006 | Mental health and psychosocial aspects of disaster preparedness in Bangladesh.                                                                  | International review of psychiatry (Abingdon, England) | https://pubmed.ncbi.nlm.nih.gov/17162693
+(8 rows)
+
+SELECT basis, count(*) AS links, round(100.0 * count(*) / sum(count(*)) OVER (), 1) AS pct
+FROM publication_countries
+GROUP BY basis;
+  basis   | links | pct  
+----------+-------+------
+ abstract |  1124 | 11.3
+ mesh     |  7994 | 80.1
+ title    |   858 |  8.6
+(3 rows)
+
+SELECT p.search_year, p.title
+FROM publications p
+WHERE p.is_included
+  AND to_tsvector('english', concat_ws(' ', p.title, p.abstract)) @@ phraseto_tsquery('english', 'psychological first aid')
+ORDER BY p.search_year DESC
+LIMIT 20;
+ search_year |                                                                                           title                                                                                           
+-------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        2025 | Psychological first aid in a cross-border medical emergency drill: Detected barriers, perceptions, and opportunities for improvement.
+        2025 | "Our Lives Have Gone" Experiences in and After Kahramanmaraş\Türkiye Earthquake: A Qualitative Research.
+        2025 | A case-specific psychological first aid AI recommendations app for rescue and first responders.
+        2025 | Psychological First Aid by AI: Proof-of-Concept and Comparative Performance of ChatGPT-4 and Gemini in Different Disaster Scenarios.
+        2025 | Supporting Children's Mental Health Needs in Disasters.
+        2025 | Evaluating the effectiveness of psychological first aid training for disaster nursing: a mixed-method study.
+        2025 | Do pediatricians consider themselves adequately prepared to support pediatric survivors after Kahramanmaraş earthquake?
+        2025 | Mental health interventions for humanitarian volunteers: a scoping review.
+        2025 | A keynote in two parts: The intersection of emergency management and disaster mental health, and a vision of disaster mental health that emerges from its challenges.
+        2025 | Enhancing Preparedness and Response to Flood Disasters: A Scoping Review of Training Activities for Response Staff.
+        2025 | Are we prepared to care for the children? An assessment of pediatric-specific pre-deployment training provided by non-governmental organizations operating in disaster zones.
+        2025 | Contextualizing Psychological First Aid for the Pacific Island Countries.
+        2025 | Validation and assessment of the arabic psychological first aid scale among physicians, nurses, and counselors in Jordan.
+        2025 | Resilience enhancement interventions for disaster rescue workers: a systematic review.
+        2025 | Psychological first aid in the intensive care unit.
+        2024 | Effectiveness of a Fire Disaster PFA Simulation Game: A Single-Blinded Trial.
+        2024 | Development and Effect of an Interactive Simulated Education Program for Psychological First Aid: A Randomized Controlled Trial.
+        2024 | 2022 Fukushima Medical University International Symposium on the Fukushima Health Management Survey Build Back Better, Together. "Science for Society: Advancing Fukushima's Well-Being".
+        2024 | Are nursing students ready to respond to disasters? A study on self-efficacy of nursing students to apply psychological first aid.
+        2024 | Psychological first aid practice self-efficacy of nurses in disasters.
+(20 rows)
+

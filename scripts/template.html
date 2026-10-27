@@ -1,0 +1,1072 @@
+<title>Бедствия и научное внимание</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<style>
+/* Раскладка: светлый лист. Шапка с выводом → закреплённая строка фильтров → сводка →
+   карта → две колонки графиков → матрица «кто кого изучает» → таблица стран → схема проекта → методика */
+:root {
+  color-scheme: light;
+  --bg: #f4f6f7;
+  --surface: #ffffff;
+  --ink: #141a1d;
+  --ink-2: #48535a;
+  --muted: #7b868c;
+  --line: #e3e8eb;
+  --line-strong: #c8d0d5;
+  --accent: #1d6a85;
+  --accent-wash: rgba(29, 106, 133, 0.08);
+  --deficit: #e34948;
+  --surplus: #2a78d6;
+  --neutral: #8a9196;
+  --neutral-light: #dde2e5;
+  --nodata: #eef1f3;
+  --zero: #f6d2d0;
+  --band: rgba(20, 26, 29, 0.05);
+  --seq-lo: #e6f0f3;
+  --seq-hi: #145a72;
+  --help: #1d6a85;
+  --font-ui: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-code: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 0.9375rem;
+  --step-1: 1.125rem;
+  --step-2: 1.5rem;
+  --step-3: 2.375rem;
+  --radius: 8px;
+  --shadow: 0 1px 2px rgba(20, 26, 29, 0.04), 0 4px 16px rgba(20, 26, 29, 0.04);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-ui); font-size: var(--step-0); line-height: 1.5; margin: 0; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.page {
+  max-width: 1280px; margin: 0 auto; display: grid; gap: 20px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* шапка */
+.hero { display: grid; gap: 10px; max-width: 78ch; }
+.eyebrow { font-size: var(--step--1); color: var(--accent); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; }
+h1 { font-size: var(--step-3); line-height: 1.08; margin: 0; font-weight: 700; letter-spacing: -0.015em; text-wrap: balance; }
+.lede { color: var(--ink-2); margin: 0; font-size: var(--step-1); line-height: 1.45; }
+.lede strong { color: var(--ink); font-weight: 600; }
+.toc { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: var(--step--1); }
+.toc a { color: var(--ink-2); text-decoration: none; border-bottom: 1px solid var(--line-strong); }
+.toc a:hover { color: var(--accent); border-color: var(--accent); }
+
+/* фильтры */
+.filters {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9;
+  display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end;
+  padding: 12px 14px; background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(6px);
+  border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+}
+@media (max-width: 720px) { .filters { position: static; } .card { scroll-margin-top: 12px; } }
+.field { display: grid; gap: 4px; min-width: 0; }
+.field label, .field .lbl { font-size: 0.75rem; color: var(--muted); }
+select, input[type="search"] {
+  font: inherit; font-size: var(--step--1); color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line-strong); border-radius: 6px; padding: 6px 8px; min-height: 34px; max-width: 100%;
+}
+input[type="search"] { width: 17ch; }
+.years { display: flex; align-items: center; gap: 6px; }
+.years span { color: var(--muted); }
+.seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 6px; overflow: hidden; }
+.seg button { font: inherit; font-size: var(--step--1); border: 0; background: var(--surface); color: var(--ink-2); padding: 6px 10px; min-height: 32px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line-strong); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: #ffffff; }
+
+/* сводка */
+.kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 2px; box-shadow: var(--shadow); }
+.kpi .v { font-size: var(--step-2); font-weight: 600; line-height: 1.15; }
+.kpi .k { font-size: var(--step--1); color: var(--ink-2); }
+.kpi .v i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: 0.15em; }
+@media (max-width: 900px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* карточки */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px 14px; display: grid; gap: 10px; min-width: 0; box-shadow: var(--shadow); scroll-margin-top: 96px; }
+.card-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 18px; align-items: baseline; }
+.card h2 { font-size: var(--step-1); margin: 0; font-weight: 600; text-wrap: balance; }
+.card .sub { margin: 0; color: var(--ink-2); font-size: var(--step--1); max-width: 76ch; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+@media (max-width: 980px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: var(--step--1); color: var(--ink-2); align-items: center; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.legend .sq { border-radius: 2px; width: 12px; }
+.legend .line-key { width: 16px; height: 2px; border-radius: 1px; background: var(--ink-2); }
+.legend .band-key { width: 16px; height: 10px; border-radius: 2px; background: var(--band); outline: 1px solid var(--line); }
+.plot { position: relative; width: 100%; }
+.plot svg { display: block; width: 100%; height: auto; }
+.plot text { font-family: var(--font-ui); }
+.note { font-size: 0.75rem; color: var(--muted); margin: 0; }
+
+/* подсказка */
+.tip {
+  position: fixed; pointer-events: none; background: var(--surface); border: 1px solid var(--line-strong);
+  border-radius: 6px; padding: 8px 10px; font-size: var(--step--1); box-shadow: 0 6px 20px rgba(20, 26, 29, 0.14);
+  min-width: 180px; max-width: 280px; z-index: 50;
+}
+.tip b { font-size: var(--step-0); display: block; margin-bottom: 2px; }
+.tip .row { display: flex; justify-content: space-between; gap: 12px; color: var(--ink-2); }
+.tip .row strong { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* карта */
+.map-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.icon-btn { font: inherit; width: 30px; height: 30px; border: 1px solid var(--line-strong); background: var(--surface); border-radius: 6px; cursor: pointer; color: var(--ink-2); }
+.map-plot svg { background: #fbfcfc; border-radius: 6px; cursor: grab; touch-action: none; }
+.map-plot path.country { stroke: #ffffff; stroke-width: 0.5; vector-effect: non-scaling-stroke; cursor: pointer; }
+.map-plot path.country:hover { stroke: var(--ink); stroke-width: 1.2; }
+.map-plot path.country.sel { stroke: var(--ink); stroke-width: 1.8; }
+.map-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; font-size: var(--step--1); color: var(--ink-2); }
+.map-legend svg { display: block; }
+
+/* матрица */
+.heat { width: 100%; border-collapse: separate; border-spacing: 3px; font-size: var(--step--1); }
+.heat th { font-weight: 500; color: var(--ink-2); text-align: center; padding: 4px; }
+.heat th.rh { text-align: left; white-space: nowrap; }
+.heat td { text-align: center; padding: 9px 4px; border-radius: 4px; font-variant-numeric: tabular-nums; }
+.heat td.n { color: var(--muted); background: none; }
+.heat-wrap { overflow-x: auto; }
+
+/* таблица */
+.table-head { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; justify-content: space-between; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: inherit; font-size: var(--step--1); border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink-2); border-radius: 999px; padding: 4px 11px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-wash); color: var(--ink); }
+.chip i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.chip .n { color: var(--muted); font-variant-numeric: tabular-nums; }
+.table-wrap { overflow: auto; max-height: 760px; border: 1px solid var(--line); border-radius: 6px; }
+table.countries { border-collapse: collapse; width: 100%; font-size: var(--step--1); }
+table.countries th, table.countries td { padding: 8px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); }
+table.countries th:first-child, table.countries td:first-child { text-align: left; position: sticky; left: 0; background: var(--surface); z-index: 1; }
+table.countries thead th { position: sticky; top: 0; z-index: 2; background: #f9fafb; color: var(--ink-2); font-weight: 500; vertical-align: bottom; }
+table.countries thead th:first-child { z-index: 3; }
+th button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: inherit; white-space: normal; line-height: 1.25; }
+th.sorted button { color: var(--ink); font-weight: 600; }
+th.sorted button::after { content: " ↓"; }
+th.sorted.asc button::after { content: " ↑"; }
+th.is-burden { box-shadow: inset 0 -2px 0 var(--accent); }
+table.countries td { font-variant-numeric: tabular-nums; }
+tbody tr.row { cursor: pointer; }
+tbody tr.row:hover td { background: #f6f9fa; }
+tbody tr.row.open td { background: var(--accent-wash); border-bottom-color: transparent; }
+.cname { display: flex; flex-direction: column; line-height: 1.25; }
+.cname b { font-weight: 600; font-size: var(--step-0); }
+.cname small { color: var(--muted); }
+.code { font-family: var(--font-code); font-size: 0.75rem; color: var(--muted); }
+.gap { display: inline-flex; align-items: center; gap: 8px; }
+.gapbar { width: 72px; height: 10px; position: relative; }
+.gapbar::before { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--line-strong); }
+.gapbar span { position: absolute; top: 1px; height: 8px; border-radius: 2px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); }
+.pill i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.muted { color: var(--muted); }
+.empty { padding: 28px; text-align: center; color: var(--muted); }
+
+/* карточка страны */
+tr.detail td { text-align: left; white-space: normal; background: #fbfcfc; padding: 6px 16px 20px; position: static; }
+.det { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr); gap: 18px 28px; max-width: 1200px; }
+.det h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 6px; font-weight: 600; }
+.det p.sum { grid-column: 1 / -1; margin: 6px 0 0; color: var(--ink-2); max-width: 92ch; font-size: var(--step-0); }
+.det p.sum strong { color: var(--ink); }
+.det table { font-size: var(--step--1); border-collapse: collapse; }
+.det table th, .det table td { padding: 4px 8px; text-align: right; border-bottom: 1px solid var(--line); }
+.det table th { color: var(--muted); font-weight: 500; }
+.ev-list, .pub-list, .who-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ev-list li { display: grid; grid-template-columns: 3.2em minmax(0, 1fr) auto; gap: 8px; align-items: baseline; }
+.ev-list .num { color: var(--ink-2); font-variant-numeric: tabular-nums; text-align: right; }
+.who-list li { display: grid; grid-template-columns: minmax(0, 9em) minmax(0, 1fr) 3.5em; gap: 8px; align-items: center; font-size: var(--step--1); }
+.who-list .bar { height: 8px; border-radius: 2px; background: var(--neutral-light); position: relative; }
+.who-list .bar span { position: absolute; inset: 0 auto 0 0; border-radius: 2px; background: var(--neutral); }
+.who-list .bar span.loc { background: var(--help); }
+.pub-list li { display: grid; grid-template-columns: 3.2em minmax(0, 1fr); gap: 8px; align-items: baseline; }
+.pub-list .meta { color: var(--muted); font-size: 0.75rem; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.tag { border: 1px solid var(--line-strong); border-radius: 3px; padding: 0 5px; font-size: 0.6875rem; color: var(--ink-2); }
+.more { font: inherit; font-size: var(--step--1); background: none; border: 1px solid var(--line-strong); border-radius: 6px; color: var(--ink); padding: 4px 10px; cursor: pointer; justify-self: start; }
+@media (max-width: 760px) { .det { grid-template-columns: minmax(0, 1fr); } }
+
+/* схема проекта */
+.schema-wrap { overflow-x: auto; }
+.schema-wrap svg { min-width: 860px; }
+.schema-wrap g.node { cursor: pointer; }
+.schema-wrap g.node rect { transition: stroke 120ms ease, fill 120ms ease; }
+.schema-info { display: grid; gap: 4px; background: var(--accent-wash); border-radius: 6px; padding: 10px 14px; font-size: var(--step--1); color: var(--ink-2); }
+.schema-info b { color: var(--ink); font-size: var(--step-0); }
+.schema-info code { font-family: var(--font-code); font-size: 0.8125rem; }
+
+/* методика */
+details.method { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 18px; box-shadow: var(--shadow); }
+details.method summary { cursor: pointer; font-weight: 600; }
+.method-body { display: grid; gap: 10px; max-width: 80ch; color: var(--ink-2); padding-top: 8px; }
+.method-body p, .method-body ul { margin: 0; }
+.method-body li + li { margin-top: 4px; }
+.method-body code { font-family: var(--font-code); font-size: 0.8125rem; background: var(--bg); padding: 1px 4px; border-radius: 3px; }
+.foot { color: var(--muted); font-size: var(--step--1); max-width: 92ch; }
+@media (prefers-reduced-motion: no-preference) { .plot circle.pt { transition: r 120ms ease; } }
+</style>
+<!--BODY-->
+<div class="page">
+  <header class="hero">
+    <div class="eyebrow">EM-DAT × PubMed · <span id="span-years">2000–2024</span></div>
+    <h1>Бедствия и научное внимание</h1>
+    <p class="lede" id="lede">Где бедствий много, а исследований психического здоровья и психологической помощи пострадавшим мало — и наоборот.</p>
+    <nav class="toc" aria-label="Разделы">
+      <a href="#map">Карта</a><a href="#scatter">Нагрузка и наука</a><a href="#flow">Куда уходит внимание</a>
+      <a href="#hazards">Типы бедствий</a><a href="#trend">Динамика</a><a href="#who">Кто кого изучает</a>
+      <a href="#countries">Страны</a><a href="#schema">Как устроен проект</a><a href="#method">Методика</a>
+    </nav>
+  </header>
+
+  <section class="filters" aria-label="Фильтры">
+    <div class="field">
+      <span class="lbl">Годы бедствий</span>
+      <div class="years"><select id="f-from" aria-label="С года"></select><span>—</span><select id="f-to" aria-label="По год"></select></div>
+    </div>
+    <div class="field"><label for="f-hazard">Тип бедствий</label><select id="f-hazard"></select></div>
+    <div class="field">
+      <label for="f-burden">Нагрузка — это</label>
+      <select id="f-burden">
+        <option value="events">число бедствий</option>
+        <option value="deaths">погибшие</option>
+        <option value="affected">пострадавшие</option>
+        <option value="damage">ущерб, млн $</option>
+      </select>
+    </div>
+    <div class="field">
+      <span class="lbl">Какие работы считать</span>
+      <div class="seg" role="group" aria-label="Какие работы считать">
+        <button type="button" id="f-res-all" aria-pressed="true">все</button>
+        <button type="button" id="f-res-help" aria-pressed="false">о помощи</button>
+      </div>
+    </div>
+    <div class="field"><label for="f-region">Регион</label><select id="f-region"><option value="">все регионы</option></select></div>
+    <div class="field"><label for="f-q">Страна</label><input type="search" id="f-q" placeholder="имя или ISO" autocomplete="off"></div>
+  </section>
+
+  <section class="kpis" aria-label="Сводка">
+    <div class="kpi"><span class="v" id="s-countries">—</span><span class="k">стран с бедствиями</span></div>
+    <div class="kpi"><span class="v" id="s-events">—</span><span class="k" id="s-events-k">бедствий</span></div>
+    <div class="kpi"><span class="v" id="s-papers">—</span><span class="k" id="s-papers-k">работ</span></div>
+    <div class="kpi"><span class="v"><i style="background:var(--deficit)"></i><span id="s-deficit">—</span></span><span class="k">стран с дефицитом исследований</span></div>
+    <div class="kpi"><span class="v" id="s-local">—</span><span class="k">работ с местным автором</span></div>
+  </section>
+
+  <section class="card" id="map" aria-labelledby="map-title">
+    <div class="card-head">
+      <h2 id="map-title">Карта разрыва</h2>
+      <div class="map-tools">
+        <div class="seg" role="group" aria-label="Что показать на карте">
+          <button type="button" data-metric="gap" aria-pressed="true">разрыв</button>
+          <button type="button" data-metric="per100" aria-pressed="false">работ на 100 бедствий</button>
+          <button type="button" data-metric="local" aria-pressed="false">местные авторы</button>
+        </div>
+        <button type="button" class="icon-btn" id="zoom-in" aria-label="Приблизить">+</button>
+        <button type="button" class="icon-btn" id="zoom-out" aria-label="Отдалить">−</button>
+        <button type="button" class="icon-btn" id="zoom-reset" aria-label="Показать весь мир">⤢</button>
+      </div>
+    </div>
+    <p class="sub" id="map-sub"></p>
+    <div class="plot map-plot" id="map-plot"></div>
+    <div class="map-legend" id="map-legend"></div>
+    <p class="note">Перетаскивайте карту мышью; масштаб — кнопками или колесом с зажатой Ctrl. Щелчок по стране открывает её карточку в таблице. 53 небольших островных государства и территории на карте не видны — они есть в таблице.</p>
+  </section>
+
+  <div class="grid2">
+    <section class="card" id="scatter" aria-labelledby="scatter-title">
+      <div class="card-head"><h2 id="scatter-title">Нагрузка и наука по странам</h2></div>
+      <p class="sub">Точка — страна. Линия — сколько работ в среднем бывает у стран с такой нагрузкой, полоса — от половины до двойного значения. Обе оси логарифмические.</p>
+      <div class="legend" aria-hidden="true">
+        <span><i style="background:var(--deficit)"></i>Дефицит</span>
+        <span><i style="background:var(--neutral)"></i>В пределах ожидаемого</span>
+        <span><i style="background:var(--surplus)"></i>Больше ожидаемого</span>
+        <span><i style="box-shadow:inset 0 0 0 1.5px var(--neutral)"></i>Мало данных</span>
+      </div>
+      <div class="plot" id="scatter-plot"></div>
+    </section>
+
+    <section class="card" id="flow" aria-labelledby="flow-title">
+      <div class="card-head">
+        <h2 id="flow-title">Куда уходит внимание</h2>
+        <div class="seg" role="group" aria-label="Группировка">
+          <button type="button" data-flow="region" aria-pressed="true">по регионам</button>
+          <button type="button" data-flow="hazard" aria-pressed="false">по типам бедствий</button>
+        </div>
+      </div>
+      <p class="sub" id="flow-sub">Слева — доля бедствий, справа — доля работ. Красная лента сужается: работ меньше, чем бедствий; синяя расширяется.</p>
+      <div class="plot" id="flow-plot"></div>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="card" id="hazards" aria-labelledby="hazards-title">
+      <div class="card-head"><h2 id="hazards-title">Типы бедствий</h2></div>
+      <p class="sub" id="hazards-sub">Работ на 100 бедствий каждого типа и на 1000 погибших. Регион и годы — из фильтров.</p>
+      <div class="plot" id="hazards-plot"></div>
+    </section>
+
+    <section class="card" id="trend" aria-labelledby="trend-title">
+      <div class="card-head"><h2 id="trend-title">Динамика по годам</h2></div>
+      <p class="sub" id="trend-sub">Сверху — бедствия, снизу — работы, из них о помощи выделены цветом.</p>
+      <div class="legend" aria-hidden="true">
+        <span><i class="sq" style="background:var(--neutral)"></i>Бедствия</span>
+        <span><i class="sq" style="background:var(--help)"></i>Работы о помощи</span>
+        <span><i class="sq" style="background:var(--neutral-light)"></i>Остальные работы</span>
+      </div>
+      <div class="plot" id="trend-plot"></div>
+    </section>
+  </div>
+
+  <section class="card" id="who" aria-labelledby="who-title">
+    <div class="card-head"><h2 id="who-title">Кто кого изучает</h2></div>
+    <p class="sub">Строка — регион, о котором работа; столбец — откуда авторы. В ячейке — доля работ, где есть хотя бы один автор из этого региона (одна работа может иметь авторов из нескольких регионов). Последний столбец — есть ли автор из той же страны. Щелчок по строке выбирает регион в фильтре.</p>
+    <div class="heat-wrap"><table class="heat" id="heat"></table></div>
+  </section>
+
+  <section class="card" id="countries" aria-labelledby="table-title">
+    <div class="table-head">
+      <h2 id="table-title">Страны</h2>
+      <div class="chips" id="chips" role="group" aria-label="Категория"></div>
+    </div>
+    <div class="table-wrap">
+      <table class="countries">
+        <thead><tr id="thead-row"></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <p class="note">Нажмите на строку: откроются крупнейшие бедствия страны, кто о ней пишет и список работ со ссылками на PubMed.</p>
+  </section>
+
+  <section class="card" id="schema" aria-labelledby="schema-title">
+    <div class="card-head"><h2 id="schema-title">Как устроен проект</h2></div>
+    <p class="sub">Путь данных от источников через базу PostgreSQL к этой странице. Число — строк в таблице. Нажмите на блок, чтобы увидеть, что в нём и каким файлом он создаётся.</p>
+    <div class="schema-wrap" id="schema-plot"></div>
+    <div class="schema-info" id="schema-info"></div>
+  </section>
+
+  <details class="method" id="method">
+    <summary>Как считается и чего не видно в данных</summary>
+    <div class="method-body">
+      <p><strong>Бедствия</strong> — архив EM-DAT (CRED, UCLouvain), версия <span id="m-emdat"></span>. Событие попадает в базу, если погибли 10 и более человек, пострадали 100 и более, объявлено чрезвычайное положение или был запрос международной помощи. Берём годы с 2000-го: CRED считает более ранние записи неполными. Эпидемии исключены, иначе литература о COVID-19 исказила бы картину.</p>
+      <p><strong>Работы</strong> — PubMed, выгрузка <span id="m-pubmed"></span>: 2000–2025 гг., есть и тема бедствия, и тема психики (психическое здоровье, ПТСР, депрессия, тревога, психологическая первая помощь, психосоциальная поддержка, психотерапия). Исправления, комментарии, письма и редакционные статьи не учитываются. Работы о COVID-19, терактах и войнах учитываются, только если в них назван конкретный тип бедствия. Всего <span id="m-pubs"></span>.</p>
+      <p><strong>Страна работы</strong> — по географическим рубрикам MeSH (их ставят индексаторы NLM), иначе по названию, иначе по аннотации. <strong>Местный автор</strong> — хотя бы один автор работает в этой стране. <strong>«О помощи»</strong> — работы о психологической первой помощи, психосоциальной поддержке, кризисной интервенции, консультировании, психотерапии, службах и программах.</p>
+      <p><strong>Ожидаемое число работ</strong> — регрессия ln(1 + работы) на ln(1 + нагрузка) по всем странам с бедствиями за период. Разрыв = (работы + 1) / (ожидаемое + 1); работы считаются за те же годы плюс один. Дефицит — меньше половины ожидаемого, «больше ожидаемого» — вдвое больше и выше, «мало данных» — ожидается меньше одной работы и есть не больше одной.</p>
+      <ul>
+        <li>PubMed почти не видит национальные журналы, в том числе русскоязычные: дефицит у стран с сильной местной наукой может быть завышен.</li>
+        <li>Страна по тексту определяется шаблонами и иногда ошибается; правила лежат в таблицах <code>country_patterns</code> и <code>classification_rules</code>.</li>
+        <li>EM-DAT лучше учитывает крупные и международно заметные события.</li>
+      </ul>
+      <p>Те же цифры в базе PostgreSQL: <code>SELECT * FROM gap_analysis(2000, 2024, 'natural', 'events', 'all');</code></p>
+      <p>Данные EM-DAT распространяются по лицензии CC BY-NC-ND 4.0 (Delforge et al., 2025, doi:10.1016/j.ijdrr.2025.105509); контуры стран — Natural Earth.</p>
+    </div>
+  </details>
+  <div class="tip" id="tip" hidden></div>
+</div>
+
+<script type="application/json" id="data">__DATA__</script>
+<script type="application/json" id="world">__WORLD__</script>
+<script>
+(function () {
+  "use strict";
+  var D = JSON.parse(document.getElementById("data").textContent);
+  var M = D.meta, HZ = D.hazards, C = D.countries;
+  var hIdx = {}; HZ.forEach(function (h, i) { hIdx[h[0]] = i; });
+  var NAT = 0; HZ.forEach(function (h, i) { if (h[2] === "Natural") NAT |= (1 << i); });
+  var GEN = 1 << hIdx.generic, LAG = 1;
+  var REGIONS = ["Африка", "Америка", "Азия", "Европа", "Океания"];
+  var nf = new Intl.NumberFormat("ru-RU");
+  var nf1 = new Intl.NumberFormat("ru-RU", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  var cf = new Intl.NumberFormat("ru-RU", { notation: "compact", maximumFractionDigits: 1 });
+  var pct = function (v) { return Math.round(v * 100) + " %"; };
+  var BURDEN = {
+    events: { label: "бедствий", short: "Бедствий" }, deaths: { label: "погибших", short: "Погибшие" },
+    affected: { label: "пострадавших", short: "Пострадавшие" }, damage: { label: "млн $ ущерба", short: "Ущерб, млн $" }
+  };
+  var CAT = {
+    deficit: { label: "Дефицит исследований", short: "Дефицит", color: "var(--deficit)" },
+    normal: { label: "В пределах ожидаемого", short: "Как ожидалось", color: "var(--neutral)" },
+    surplus: { label: "Изучено больше ожидаемого", short: "Больше ожидаемого", color: "var(--surplus)" },
+    few: { label: "Мало данных", short: "Мало данных", color: "var(--neutral)", hollow: true }
+  };
+  var HZ_GEN = {
+    natural: "природных бедствий", all: "природных и техногенных бедствий", earthquake: "землетрясений и цунами",
+    flood: "наводнений", storm: "ураганов, тайфунов, циклонов и торнадо", wildfire: "природных пожаров", drought: "засух",
+    extreme_temp: "аномальной жары и холода", volcanic: "извержений вулканов", mass_movement: "оползней, селей и лавин",
+    technological: "техногенных катастроф"
+  };
+  var HZ_SHORT = {
+    earthquake: "Землетрясения", flood: "Наводнения", storm: "Ураганы и бури", wildfire: "Природные пожары",
+    drought: "Засухи", extreme_temp: "Жара и холод", volcanic: "Вулканы", mass_movement: "Оползни и сели",
+    technological: "Техногенные"
+  };
+  // цвета для расчёта в JS (те же, что токены CSS)
+  var COL = { deficit: "#e34948", surplus: "#2a78d6", neutral: "#8a9196", nlight: "#dde2e5", nodata: "#eef1f3",
+              zero: "#f6d2d0", seqLo: "#e6f0f3", seqHi: "#145a72", help: "#1d6a85" };
+  var diverge = function (t) {  // t от −1 (дефицит) до +1 (избыток)
+    t = Math.max(-1, Math.min(1, t));
+    return t < 0 ? d3.interpolateRgb(COL.nlight, COL.deficit)(-t) : d3.interpolateRgb(COL.nlight, COL.surplus)(t);
+  };
+  var seq = function (t) { return d3.interpolateRgb(COL.seqLo, COL.seqHi)(Math.max(0, Math.min(1, t))); };
+
+  var S = { from: 2000, to: M.year_max, hazard: "natural", burden: "events", research: "all", region: "", q: "", cat: "",
+            sortKey: "ratio", sortDir: 1, open: -1, shown: 25, metric: "gap", flow: "region" };
+  var R = [], RBY = {}, FIT = { a: 0, b: 0 };
+
+  function hazardOk(f, mask) {
+    if (f === "all") return mask !== 0;
+    if (f === "natural") return (mask & NAT) !== 0 || mask === GEN;
+    return (mask & (1 << hIdx[f])) !== 0;
+  }
+  function pubYearOk(p) { return p[1] >= S.from && p[1] <= S.to + LAG; }
+  function pubOk(p) { return pubYearOk(p) && hazardOk(S.hazard, p[5]) && (S.research !== "help" || (p[6] & 1)); }
+  function disOk(d) { return d[1] >= S.from && d[1] <= S.to && hazardOk(S.hazard, 1 << d[2]); }
+  function inRegion(ci) { return !S.region || C[ci][2] === S.region; }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  var SVGNS = "http://www.w3.org/2000/svg";
+  function sv(tag, attrs, parent) { var e = document.createElementNS(SVGNS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+  function txt(parent, attrs, s) { var t = sv("text", attrs, parent); t.textContent = s; return t; }
+  function plural(n, one, few, many) { var a = n % 10, b = n % 100; if (a === 1 && b !== 11) return one; if (a >= 2 && a <= 4 && (b < 10 || b >= 20)) return few; return many; }
+  function ratioText(r) { return r < 1 ? "в " + nf1.format(1 / r) + " раза меньше" : "в " + nf1.format(r) + " раза больше"; }
+  function ratioShort(r) { return r < 1 ? "↓ " + nf1.format(1 / r) + "×" : "↑ " + nf1.format(r) + "×"; }
+  function big(v) { return v >= 10000 ? cf.format(v) : nf.format(Math.round(v)); }
+  function burdenFmt(v) { return S.burden === "events" ? nf.format(v) : big(v); }
+  function dotStyle(e, cat) { if (CAT[cat].hollow) { e.style.background = "transparent"; e.style.boxShadow = "inset 0 0 0 1.5px " + CAT[cat].color; } else e.style.background = CAT[cat].color; }
+
+  // ---------- общая подсказка ----------
+  var tip = document.getElementById("tip");
+  function showTip(ev, title, rows, foot) {
+    tip.textContent = "";
+    tip.appendChild(el("b", null, title));
+    rows.forEach(function (r) { var d = el("div", "row"); d.appendChild(el("span", null, r[0])); d.appendChild(el("strong", null, r[1])); tip.appendChild(d); });
+    if (foot) tip.appendChild(el("div", "row", foot));
+    tip.hidden = false;
+    var w = tip.offsetWidth, h = tip.offsetHeight, x = ev.clientX + 14, y = ev.clientY + 14;
+    if (x + w > window.innerWidth - 8) x = ev.clientX - w - 14;
+    if (y + h > window.innerHeight - 8) y = ev.clientY - h - 14;
+    tip.style.left = Math.max(8, x) + "px"; tip.style.top = Math.max(8, y) + "px";
+  }
+  function hideTip() { tip.hidden = true; }
+
+  // ---------- расчёт: то же, что gap_analysis() в PostgreSQL ----------
+  function compute() {
+    var agg = {};
+    D.dis.forEach(function (d) {
+      if (!disOk(d)) return;
+      var a = agg[d[0]] || (agg[d[0]] = { ci: d[0], events: 0, deaths: 0, affected: 0, damage: 0, papers: 0, help: 0, rct: 0, local: 0 });
+      a.events += d[3]; a.deaths += d[4]; a.affected += d[5]; a.damage += d[6];
+    });
+    D.pubs.forEach(function (p) {
+      if (!pubYearOk(p) || !hazardOk(S.hazard, p[5])) return;
+      p[4].forEach(function (ci) {
+        var a = agg[ci]; if (!a) return;
+        a.papers++; if (p[6] & 1) a.help++; if (p[6] & 2) a.rct++; if (p[7].indexOf(ci) >= 0) a.local++;
+      });
+    });
+    var rows = Object.keys(agg).map(function (k) { return agg[k]; });
+    var n = rows.length, sx = 0, sy = 0;
+    rows.forEach(function (r) {
+      r.burden = r[S.burden]; r.research = S.research === "help" ? r.help : r.papers;
+      r.x = Math.log(1 + r.burden); r.y = Math.log(1 + r.research); sx += r.x; sy += r.y;
+    });
+    var mx = sx / n, my = sy / n, sxx = 0, sxy = 0;
+    rows.forEach(function (r) { sxx += (r.x - mx) * (r.x - mx); sxy += (r.x - mx) * (r.y - my); });
+    var b = sxx > 0 ? sxy / sxx : 0, a = my - b * mx;
+    FIT = { a: a, b: b };
+    RBY = {};
+    rows.forEach(function (r) {
+      r.expected = Math.max(Math.exp(a + b * r.x) - 1, 0);
+      r.ratio = (r.research + 1) / (r.expected + 1);
+      r.cat = r.expected < 1 && r.research <= 1 ? "few" : r.ratio <= 0.5 ? "deficit" : (r.ratio >= 2 ? "surplus" : "normal");
+      r.iso = C[r.ci][0]; r.name = C[r.ci][1]; r.region = C[r.ci][2];
+      r.localShare = r.papers ? r.local / r.papers : null;
+      RBY[r.iso] = r;
+    });
+    R = rows;
+  }
+  function visibleBase() {
+    var q = S.q.trim().toLowerCase();
+    return R.filter(function (r) {
+      if (S.region && r.region !== S.region) return false;
+      if (q && r.name.toLowerCase().indexOf(q) < 0 && r.iso.toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    });
+  }
+
+  // ---------- сводка ----------
+  function renderSummary(base) {
+    var ev = 0, pp = 0, loc = 0, all = 0, def = 0;
+    base.forEach(function (r) { ev += r.events; pp += r.research; loc += r.local; all += r.papers; if (r.cat === "deficit") def++; });
+    document.getElementById("s-countries").textContent = nf.format(base.length);
+    document.getElementById("s-events").textContent = nf.format(ev);
+    document.getElementById("s-events-k").textContent = plural(ev, "бедствие", "бедствия", "бедствий") + " за " + S.from + "–" + S.to;
+    document.getElementById("s-papers").textContent = nf.format(pp);
+    document.getElementById("s-papers-k").textContent = (S.research === "help" ? "работ о помощи" : "работ") + " за " + S.from + "–" + (S.to + LAG);
+    document.getElementById("s-deficit").textContent = nf.format(def);
+    document.getElementById("s-local").textContent = all ? pct(loc / all) : "—";
+    document.getElementById("span-years").textContent = S.from + "–" + S.to;
+    var hz = HZ_GEN[S.hazard];
+    var what = { events: "число " + hz, deaths: "число погибших от " + hz, affected: "число пострадавших от " + hz, damage: "ущерб от " + hz }[S.burden];
+    var worst = base.filter(function (r) { return r.cat === "deficit"; }).sort(function (x, y) { return y.burden - x.burden; }).slice(0, 3).map(function (r) { return r.name; });
+    var lede = document.getElementById("lede"); lede.textContent = "";
+    lede.appendChild(document.createTextNode("Сравниваем " + what + " в стране с числом научных работ " +
+      (S.research === "help" ? "о психологической помощи пострадавшим" : "о психическом здоровье и психологической помощи пострадавшим") + ". "));
+    if (worst.length) { lede.appendChild(document.createTextNode("Самая большая нагрузка при дефиците исследований: ")); lede.appendChild(el("strong", null, worst.join(", "))); lede.appendChild(document.createTextNode(".")); }
+  }
+
+  // ---------- карта ----------
+  var world = JSON.parse(document.getElementById("world").textContent);
+  var FEATS = topojson.feature(world, world.objects.world).features.filter(function (f) { return f.id !== "ATA"; });
+  var MW = 960, MH = 470;
+  var mapSvg = d3.select("#map-plot").append("svg").attr("viewBox", "0 0 " + MW + " " + MH).attr("role", "img").attr("aria-label", "Карта мира: разрыв между бедствиями и исследованиями");
+  var projection = d3.geoEqualEarth().fitExtent([[6, 6], [MW - 6, MH - 6]], { type: "FeatureCollection", features: FEATS });
+  var gpath = d3.geoPath(projection);
+  var mapG = mapSvg.append("g");
+  var mapPaths = mapG.selectAll("path").data(FEATS).join("path").attr("class", "country").attr("d", gpath);
+  var zoom = d3.zoom().scaleExtent([1, 8]).translateExtent([[0, 0], [MW, MH]])
+    .filter(function (ev) { return ev.type === "wheel" ? (ev.ctrlKey || ev.metaKey) : !ev.button; })
+    .on("zoom", function (ev) { mapG.attr("transform", ev.transform); });
+  mapSvg.call(zoom);
+  document.getElementById("zoom-in").addEventListener("click", function () { mapSvg.transition().duration(250).call(zoom.scaleBy, 1.6); });
+  document.getElementById("zoom-out").addEventListener("click", function () { mapSvg.transition().duration(250).call(zoom.scaleBy, 1 / 1.6); });
+  document.getElementById("zoom-reset").addEventListener("click", function () { mapSvg.transition().duration(300).call(zoom.transform, d3.zoomIdentity); });
+  var MAP_SUB = {
+    gap: "Цвет — во сколько раз работ меньше (красный) или больше (синий), чем у стран с похожей нагрузкой.",
+    per100: "Цвет — сколько работ приходится на 100 бедствий выбранного типа. Розовые — страны с бедствиями, но без единой работы.",
+    local: "Цвет — доля работ о стране, где есть хотя бы один местный автор (страны, о которых 3 работы и больше)."
+  };
+  function mapFill(f) {
+    var r = RBY[f.id];
+    if (!r) return COL.nodata;
+    if (S.metric === "gap") return r.cat === "few" ? "#e9ecee" : diverge(Math.log2(r.ratio) / 3);
+    if (S.metric === "per100") { if (!r.research) return COL.zero; return seq(Math.log10(1 + 100 * r.research / r.events) / Math.log10(1 + 600)); }
+    if (r.papers < 3) return COL.nodata;
+    return seq(r.localShare);
+  }
+  function renderMap() {
+    document.getElementById("map-sub").textContent = MAP_SUB[S.metric];
+    var selIso = S.open >= 0 ? C[S.open][0] : null;
+    mapPaths.attr("fill", mapFill)
+      .attr("opacity", function (f) { var r = RBY[f.id]; return S.region && (!r || r.region !== S.region) ? 0.3 : 1; })
+      .classed("sel", function (f) { return f.id === selIso; })
+      .on("mousemove", function (ev, f) {
+        var r = RBY[f.id], name = r ? r.name : (f.properties && f.properties.name) || f.id;
+        if (!r) { showTip(ev, name, [], "Нет бедствий выбранного типа за период"); return; }
+        showTip(ev, name, [[BURDEN[S.burden].short, burdenFmt(r.burden)], [S.research === "help" ? "Работ о помощи" : "Работ", nf.format(r.research)],
+          ["Ожидалось", nf1.format(r.expected)], ["Разрыв", ratioShort(r.ratio)], ["Местный автор", r.papers ? pct(r.localShare) : "—"]], CAT[r.cat].label);
+      })
+      .on("mouseleave", hideTip)
+      .on("click", function (ev, f) { var r = RBY[f.id]; if (r) openCountry(r.ci, true); });
+    renderMapLegend();
+  }
+  function renderMapLegend() {
+    var box = document.getElementById("map-legend"); box.textContent = "";
+    var w = 260, h = 34, s = sv("svg", { width: w, height: h, viewBox: "0 0 " + w + " " + h, "aria-hidden": "true" });
+    var defs = sv("defs", {}, s), gid = "lg-" + S.metric, lg = sv("linearGradient", { id: gid, x1: "0", x2: "1", y1: "0", y2: "0" }, defs);
+    for (var i = 0; i <= 10; i++) { var t = i / 10; sv("stop", { offset: t, "stop-color": S.metric === "gap" ? diverge(t * 2 - 1) : seq(t) }, lg); }
+    sv("rect", { x: 4, y: 4, width: w - 8, height: 10, rx: 2, fill: "url(#" + gid + ")" }, s);
+    var ticks = S.metric === "gap" ? [["↓8×", 0], ["↓2×", 1 / 3], ["1", 0.5], ["↑2×", 2 / 3], ["↑8×", 1]]
+      : S.metric === "per100" ? [["0", 0], ["10", Math.log10(11) / Math.log10(601)], ["100", Math.log10(101) / Math.log10(601)], ["600", 1]]
+      : [["0 %", 0], ["50 %", 0.5], ["100 %", 1]];
+    ticks.forEach(function (tk) {
+      var x = 4 + tk[1] * (w - 8);
+      sv("line", { x1: x, x2: x, y1: 14, y2: 18, stroke: COL.neutral }, s);
+      txt(s, { x: x, y: 30, "text-anchor": tk[1] === 0 ? "start" : tk[1] === 1 ? "end" : "middle", "font-size": 11, fill: "#48535a" }, tk[0]);
+    });
+    box.appendChild(s);
+    function sw(color, label, ring) { var sp = el("span"), i = el("i", "sq"); i.style.background = color; if (ring) i.style.boxShadow = "inset 0 0 0 1px #c8d0d5"; sp.appendChild(i); sp.appendChild(document.createTextNode(label)); sp.style.display = "inline-flex"; sp.style.gap = "6px"; sp.style.alignItems = "center"; box.appendChild(sp); }
+    if (S.metric === "per100") sw(COL.zero, "бедствия есть, работ нет");
+    if (S.metric === "gap") sw("#e9ecee", "мало данных", true);
+    sw(COL.nodata, S.metric === "local" ? "меньше 3 работ или нет бедствий" : "нет бедствий выбранного типа", true);
+  }
+  document.querySelectorAll("[data-metric]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      S.metric = b.getAttribute("data-metric");
+      document.querySelectorAll("[data-metric]").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+      renderMap();
+    });
+  });
+
+  // ---------- диаграмма рассеяния ----------
+  var scatterEl = document.getElementById("scatter-plot");
+  function ticksLog(maxLog) { var out = [0], v = 1; while (Math.log(1 + v) <= maxLog * 1.0001) { out.push(v); v *= 10; } return out; }
+  function tickLabel(v) { return v >= 1000 ? cf.format(v) : String(v); }
+  function narrow(e) { return e.clientWidth > 0 && e.clientWidth < 520; }
+  function renderScatter(base) {
+    var W = narrow(scatterEl) ? 420 : 620, H = narrow(scatterEl) ? 340 : 420, m = { l: 40, r: 12, t: 26, b: 40 }, iw = W - m.l - m.r, ih = H - m.t - m.b;
+    var xmax = 0, ymax = 0; R.forEach(function (r) { xmax = Math.max(xmax, r.x); ymax = Math.max(ymax, r.y); });
+    xmax = Math.max(xmax, Math.log(11)) * 1.04; ymax = Math.max(ymax, Math.log(11)) * 1.06;
+    var X = function (v) { return m.l + v / xmax * iw; }, Y = function (v) { return m.t + ih - v / ymax * ih; };
+    scatterEl.textContent = "";
+    var svg = sv("svg", { viewBox: "0 0 " + W + " " + H, role: "img", "aria-label": "Нагрузка от бедствий и число работ по странам" }, scatterEl);
+    var cp = sv("clipPath", { id: "sc-clip" }, sv("defs", {}, svg)); sv("rect", { x: m.l, y: m.t, width: iw, height: ih }, cp);
+    ticksLog(ymax).forEach(function (v) { var y = Y(Math.log(1 + v)); sv("line", { x1: m.l, x2: m.l + iw, y1: y, y2: y, stroke: "#e3e8eb" }, svg); txt(svg, { x: m.l - 6, y: y + 4, "text-anchor": "end", "font-size": 11, fill: "#7b868c" }, tickLabel(v)); });
+    ticksLog(xmax).forEach(function (v) { var x = X(Math.log(1 + v)); sv("line", { x1: x, x2: x, y1: m.t, y2: m.t + ih, stroke: "#e3e8eb" }, svg); txt(svg, { x: x, y: m.t + ih + 16, "text-anchor": "middle", "font-size": 11, fill: "#7b868c" }, tickLabel(v)); });
+    sv("line", { x1: m.l, x2: m.l + iw, y1: m.t + ih, y2: m.t + ih, stroke: "#c8d0d5" }, svg);
+    txt(svg, { x: m.l + iw, y: H - 4, "text-anchor": "end", "font-size": 12, fill: "#48535a" }, BURDEN[S.burden].short + " →");
+    txt(svg, { x: m.l, y: 14, "font-size": 12, fill: "#48535a" }, "↑ " + (S.research === "help" ? "Работ о помощи" : "Работ"));
+    var LN2 = Math.log(2), up = [], lo = [], mid = [];
+    for (var i = 0; i <= 60; i++) { var xv = xmax * i / 60, e = Math.max(FIT.a + FIT.b * xv, 0); mid.push(X(xv) + "," + Y(e)); up.push(X(xv) + "," + Y(e + LN2)); lo.push(X(xv) + "," + Y(Math.max(e - LN2, 0))); }
+    var cg = sv("g", { "clip-path": "url(#sc-clip)" }, svg);
+    sv("polygon", { points: up.concat(lo.reverse()).join(" "), fill: "rgba(20,26,29,0.05)" }, cg);
+    sv("polyline", { points: mid.join(" "), fill: "none", stroke: "#48535a", "stroke-width": 2 }, cg);
+    var vis = {}; base.forEach(function (r) { vis[r.ci] = true; });
+    var layer = { few: 0, normal: 1, surplus: 2, deficit: 2 }, pts = [];
+    R.slice().sort(function (p, q) { return layer[p.cat] - layer[q.cat]; }).forEach(function (r) {
+      var cx = X(r.x), cy = Y(r.y), on = !!vis[r.ci] && (!S.cat || S.cat === r.cat), hollow = CAT[r.cat].hollow, sel = r.ci === S.open;
+      sv("circle", { cx: cx, cy: cy, r: sel ? 7 : (hollow ? 3.5 : 4.5), fill: hollow ? "#ffffff" : CAT[r.cat].color.replace("var(--deficit)", COL.deficit).replace("var(--surplus)", COL.surplus).replace("var(--neutral)", COL.neutral),
+        stroke: sel ? "#141a1d" : (hollow ? COL.neutral : "#ffffff"), "stroke-width": hollow ? 1.5 : 2, "class": "pt", opacity: on ? 1 : 0.15 }, svg);
+      if (on) pts.push({ r: r, x: cx, y: cy });
+    });
+    var boxes = pts.map(function (p) { return [p.x - 5, p.y - 5, p.x + 5, p.y + 5]; });
+    var cand = base.filter(function (r) { return r.cat === "deficit"; }).sort(function (p, q) { return q.x - p.x; }).slice(0, 5)
+      .concat(base.filter(function (r) { return r.cat === "surplus"; }).sort(function (p, q) { return q.y - p.y; }).slice(0, 4));
+    var sel = R.filter(function (r) { return r.ci === S.open; }); cand = sel.concat(cand.filter(function (r) { return r.ci !== S.open; }));
+    cand.forEach(function (r) {
+      if (S.cat && S.cat !== r.cat && r.ci !== S.open) return;
+      var cx = X(r.x), cy = Y(r.y), w = r.name.length * 6.6, h = 14;
+      [[cx + 8, cy + 4, "start"], [cx - 8, cy + 4, "end"], [cx + 6, cy - 9, "start"], [cx + 6, cy + 17, "start"]].some(function (t) {
+        var x0 = t[2] === "start" ? t[0] : t[0] - w, b = [x0, t[1] - h + 3, x0 + w, t[1] + 3];
+        if (b[0] < m.l || b[2] > m.l + iw || b[1] < m.t) return false;
+        var hit = boxes.some(function (o) { var own = Math.abs((o[0] + o[2]) / 2 - cx) < 1 && Math.abs((o[1] + o[3]) / 2 - cy) < 1; return !own && !(b[2] < o[0] || b[0] > o[2] || b[3] < o[1] || b[1] > o[3]); });
+        if (hit) return false;
+        boxes.push(b);
+        txt(svg, { x: t[0], y: t[1], "text-anchor": t[2], "font-size": 12, fill: "#141a1d", "font-weight": r.ci === S.open ? 600 : 400, stroke: "#ffffff", "stroke-width": 3, "paint-order": "stroke" }, r.name);
+        return true;
+      });
+    });
+    function nearest(ev) { var b = svg.getBoundingClientRect(), sc = W / b.width, mx = (ev.clientX - b.left) * sc, my = (ev.clientY - b.top) * sc, best = null, bd = 22 * sc; pts.forEach(function (p) { var d = Math.hypot(p.x - mx, p.y - my); if (d < bd) { bd = d; best = p; } }); return best; }
+    svg.addEventListener("pointermove", function (ev) {
+      var p = nearest(ev); if (!p) { hideTip(); svg.style.cursor = ""; return; }
+      svg.style.cursor = "pointer"; var r = p.r;
+      showTip(ev, r.name, [[BURDEN[S.burden].short, burdenFmt(r.burden)], [S.research === "help" ? "Работ о помощи" : "Работ", nf.format(r.research)], ["Ожидалось", nf1.format(r.expected)], ["Разрыв", ratioShort(r.ratio)]], CAT[r.cat].label);
+    });
+    svg.addEventListener("pointerleave", hideTip);
+    svg.addEventListener("click", function (ev) { var p = nearest(ev); if (p) openCountry(p.r.ci, true); });
+  }
+
+  // ---------- куда уходит внимание (ленты долей) ----------
+  var flowEl = document.getElementById("flow-plot");
+  document.querySelectorAll("[data-flow]").forEach(function (b) {
+    b.addEventListener("click", function () { S.flow = b.getAttribute("data-flow"); document.querySelectorAll("[data-flow]").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); }); renderFlow(); });
+  });
+  function renderFlow() {
+    var groups = [], left = {}, right = {};
+    if (S.flow === "region") {
+      REGIONS.forEach(function (g) { left[g] = 0; right[g] = 0; });
+      D.dis.forEach(function (d) { if (disOk(d)) left[C[d[0]][2]] += d[3]; });
+      D.pubs.forEach(function (p) { if (pubOk(p)) p[4].forEach(function (ci) { if (right[C[ci][2]] != null) right[C[ci][2]] += 1; }); });
+      groups = REGIONS.slice();
+      document.getElementById("flow-sub").textContent = "Слева — доля " + HZ_GEN[S.hazard] + " по регионам, справа — доля работ о странах региона. Красная лента сужается: работ меньше, чем бедствий; синяя расширяется.";
+    } else {
+      var nat = HZ.filter(function (h) { return h[2] === "Natural"; }).map(function (h) { return h[0]; });
+      nat.forEach(function (g) { left[g] = 0; right[g] = 0; });
+      D.dis.forEach(function (d) { var code = HZ[d[2]][0]; if (d[1] >= S.from && d[1] <= S.to && left[code] != null && inRegion(d[0])) left[code] += d[3]; });
+      D.pubs.forEach(function (p) {
+        if (!pubYearOk(p) || (S.research === "help" && !(p[6] & 1))) return;
+        if (S.region && !p[4].some(inRegion)) return;
+        nat.forEach(function (code) { if (p[5] & (1 << hIdx[code])) right[code] += 1; });
+      });
+      groups = nat;
+      document.getElementById("flow-sub").textContent = "Слева — доля каждого природного типа среди бедствий" + (S.region ? " (" + S.region + ")" : "") + ", справа — среди упоминаний типа в работах. Фильтр типа здесь не применяется.";
+    }
+    var lt = 0, rt = 0; groups.forEach(function (g) { lt += left[g]; rt += right[g]; });
+    flowEl.textContent = "";
+    if (!lt || !rt) { flowEl.appendChild(el("p", "note", "Нет данных под выбранные фильтры.")); return; }
+    var nw = narrow(flowEl), W = nw ? 420 : 620, H = nw ? 360 : 420, padT = 26, gapPx = 6, barW = 12, x0 = nw ? 128 : 170, x1 = nw ? W - 56 : W - 170;
+    var avail = H - padT - 8 - gapPx * (groups.length - 1);
+    var svg = sv("svg", { viewBox: "0 0 " + W + " " + H, role: "img", "aria-label": "Доля бедствий и доля работ по группам" }, flowEl);
+    txt(svg, { x: x0 + barW / 2, y: 14, "text-anchor": "middle", "font-size": 12, fill: "#48535a", "font-weight": 600 }, "Бедствия");
+    txt(svg, { x: x1 + barW / 2, y: 14, "text-anchor": "middle", "font-size": 12, fill: "#48535a", "font-weight": 600 }, "Работы");
+    var yl = padT, yr = padT;
+    groups.forEach(function (g) {
+      var ls = left[g] / lt, rs = right[g] / rt, lh = Math.max(ls * avail, 1.5), rh = Math.max(rs * avail, 1.5);
+      var t = ls > 0 && rs > 0 ? Math.log2(rs / ls) / 2 : (rs > 0 ? 1 : -1), color = diverge(t);
+      var name = S.flow === "region" ? g : HZ_SHORT[g];
+      var path = "M" + (x0 + barW) + "," + yl + " C" + ((x0 + x1) / 2) + "," + yl + " " + ((x0 + x1) / 2) + "," + yr + " " + x1 + "," + yr +
+                 " L" + x1 + "," + (yr + rh) + " C" + ((x0 + x1) / 2) + "," + (yr + rh) + " " + ((x0 + x1) / 2) + "," + (yl + lh) + " " + (x0 + barW) + "," + (yl + lh) + " Z";
+      var gEl = sv("g", { "class": "flow-g" }, svg);
+      var ribbon = sv("path", { d: path, fill: color, "fill-opacity": 0.55, stroke: "#ffffff", "stroke-width": 1 }, gEl);
+      sv("rect", { x: x0, y: yl, width: barW, height: lh, fill: color, rx: 2 }, gEl);
+      sv("rect", { x: x1, y: yr, width: barW, height: rh, fill: color, rx: 2 }, gEl);
+      txt(gEl, { x: x0 - 8, y: yl + lh / 2 + 4, "text-anchor": "end", "font-size": 12, fill: "#141a1d" }, name + " · " + pct(ls));
+      txt(gEl, { x: x1 + barW + 8, y: yr + rh / 2 + 4, "font-size": 12, fill: "#141a1d" }, pct(rs));
+      gEl.addEventListener("mousemove", function (ev) {
+        ribbon.setAttribute("fill-opacity", 0.85);
+        showTip(ev, name, [["Доля бедствий", nf1.format(ls * 100) + " %"], ["Доля работ", nf1.format(rs * 100) + " %"], ["Бедствий", nf.format(left[g])], [S.flow === "region" ? "Работ (привязок к странам)" : "Упоминаний в работах", nf.format(right[g])]],
+          ls > 0 && rs > 0 ? "Доля работ " + ratioText(rs / ls) + ", чем доля бедствий" : "");
+      });
+      gEl.addEventListener("mouseleave", function () { ribbon.setAttribute("fill-opacity", 0.55); hideTip(); });
+      if (S.flow === "region") { gEl.style.cursor = "pointer"; gEl.addEventListener("click", function () { setRegion(S.region === g ? "" : g); }); }
+      yl += lh + gapPx; yr += rh + gapPx;
+    });
+  }
+
+  // ---------- типы бедствий ----------
+  var hazEl = document.getElementById("hazards-plot");
+  function renderHazards() {
+    var codes = HZ.filter(function (h) { return h[0] !== "generic"; }).map(function (h) { return h[0]; });
+    var ev = {}, de = {}, pp = {}; codes.forEach(function (c) { ev[c] = 0; de[c] = 0; pp[c] = 0; });
+    D.dis.forEach(function (d) { var c = HZ[d[2]][0]; if (d[1] >= S.from && d[1] <= S.to && ev[c] != null && inRegion(d[0])) { ev[c] += d[3]; de[c] += d[4]; } });
+    var natPapers = 0;
+    D.pubs.forEach(function (p) {
+      if (!pubYearOk(p) || (S.research === "help" && !(p[6] & 1))) return;
+      if (S.region && !p[4].some(inRegion)) return;
+      if (!p[4].length) return;
+      codes.forEach(function (c) { if (p[5] & (1 << hIdx[c])) pp[c] += 1; });
+      if (hazardOk("natural", p[5])) natPapers += 1;
+    });
+    var natEvents = 0; codes.forEach(function (c) { if (c !== "technological") natEvents += ev[c]; });
+    var avg = natEvents ? 100 * natPapers / natEvents : 0;
+    var rows = codes.filter(function (c) { return ev[c] > 0; }).map(function (c) { return { c: c, ev: ev[c], de: de[c], pp: pp[c], per: 100 * pp[c] / ev[c], perD: de[c] ? 1000 * pp[c] / de[c] : null }; })
+      .sort(function (a, b) { return b.per - a.per; });
+    hazEl.textContent = "";
+    if (!rows.length) { hazEl.appendChild(el("p", "note", "Нет бедствий под выбранные фильтры.")); return; }
+    document.getElementById("hazards-sub").textContent = "Работ на 100 бедствий каждого типа" + (S.region ? " (" + S.region + ")" : "") + " и на 1000 погибших. Линия — уровень по всем природным бедствиям.";
+    var nw = narrow(hazEl), W = nw ? 420 : 620, band = 34, top = 34, H = top + rows.length * band + 26, L = nw ? 134 : 150, BW = nw ? 130 : 280, VX = nw ? 316 : 500;
+    var mx = Math.max.apply(null, rows.map(function (r) { return r.per; }).concat([avg]));
+    var X = function (v) { return L + (mx ? v / mx : 0) * BW; };
+    var svg = sv("svg", { viewBox: "0 0 " + W + " " + H, role: "img", "aria-label": "Работ на 100 бедствий по типам" }, hazEl);
+    txt(svg, { x: VX, y: 20, "text-anchor": "end", "font-size": 11, fill: "#7b868c" }, nw ? "на 100" : "на 100 бедствий");
+    txt(svg, { x: W - 4, y: 20, "text-anchor": "end", "font-size": 11, fill: "#7b868c" }, nw ? "на 1000 погиб." : "на 1000 погибших");
+    rows.forEach(function (r, i) {
+      var y = top + i * band, color = r.per < avg / 2 ? COL.deficit : r.per > avg * 2 ? COL.surplus : COL.neutral, selRow = S.hazard === r.c;
+      var g = sv("g", {}, svg);
+      txt(g, { x: L - 10, y: y + 12, "text-anchor": "end", "font-size": 12, fill: "#141a1d", "font-weight": selRow ? 600 : 400 }, HZ_SHORT[r.c]);
+      sv("rect", { x: L, y: y + 2, width: Math.max(X(r.per) - L, 2), height: 14, rx: 3, fill: color, "fill-opacity": 0.85 }, g);
+      txt(g, { x: VX, y: y + 13, "text-anchor": "end", "font-size": 12, fill: "#141a1d" }, nf1.format(r.per));
+      txt(g, { x: W - 4, y: y + 13, "text-anchor": "end", "font-size": 12, fill: "#48535a" }, r.perD == null ? "—" : r.perD.toLocaleString("ru-RU", { maximumFractionDigits: r.perD < 10 ? 1 : 0 }));
+      sv("rect", { x: 0, y: y - 4, width: W, height: band, fill: "transparent" }, g);
+      g.addEventListener("mousemove", function (e) { showTip(e, HZ_SHORT[r.c], [["Бедствий", nf.format(r.ev)], ["Погибших", nf.format(r.de)], ["Работ", nf.format(r.pp)], ["На 100 бедствий", nf1.format(r.per)]], r.per < avg / 2 ? "Изучено меньше половины среднего уровня" : r.per > avg * 2 ? "Изучено вдвое больше среднего уровня" : ""); });
+      g.addEventListener("mouseleave", hideTip);
+    });
+    var ax = X(avg);
+    sv("line", { x1: ax, x2: ax, y1: top - 6, y2: top + rows.length * band - 8, stroke: "#48535a", "stroke-width": 1 }, svg);
+    txt(svg, { x: ax + 4, y: H - 6, "font-size": 11, fill: "#48535a" }, "все природные: " + nf1.format(avg));
+  }
+
+  // ---------- динамика ----------
+  var trendEl = document.getElementById("trend-plot");
+  function renderTrend() {
+    var y0 = S.from, y1 = S.to + LAG, years = []; for (var y = y0; y <= y1; y++) years.push(y);
+    var ev = {}, help = {}, other = {}; years.forEach(function (y) { ev[y] = 0; help[y] = 0; other[y] = 0; });
+    D.dis.forEach(function (d) { if (disOk(d) && inRegion(d[0])) ev[d[1]] += d[3]; });
+    D.pubs.forEach(function (p) {
+      if (!pubOk(p) || ev[p[1]] == null && help[p[1]] == null) return;
+      if (!p[4].length || (S.region && !p[4].some(inRegion))) return;
+      if (p[6] & 1) help[p[1]] += 1; else if (S.research !== "help") other[p[1]] += 1;
+    });
+    trendEl.textContent = "";
+    document.getElementById("trend-sub").textContent = "Сверху — " + HZ_GEN[S.hazard] + (S.region ? " (" + S.region + ")" : "") + " по годам, снизу — работы о странах" + (S.region ? " региона" : "") + "; работы о помощи выделены цветом. " + (years[years.length - 1] > M.year_max ? "Бедствия за " + years[years.length - 1] + " г. в архиве EM-DAT ещё нет." : "");
+    var W = narrow(trendEl) ? 420 : 620, L = 44, Rr = 10, ph = 140, gap = 34, H = 22 + ph * 2 + gap + 30, bw = (W - L - Rr) / years.length;
+    var svg = sv("svg", { viewBox: "0 0 " + W + " " + H, role: "img", "aria-label": "Бедствия и работы по годам" }, trendEl);
+    function panel(top, series, title, colorFn) {
+      var mxv = 0; years.forEach(function (y) { mxv = Math.max(mxv, series(y)); }); mxv = mxv || 1;
+      var nice = d3.scaleLinear().domain([0, mxv]).nice(4), tks = nice.ticks(4), dmax = nice.domain()[1];
+      txt(svg, { x: L, y: top - 8, "font-size": 12, fill: "#48535a", "font-weight": 600 }, title);
+      tks.forEach(function (t) { var yy = top + ph - t / dmax * ph; sv("line", { x1: L, x2: W - Rr, y1: yy, y2: yy, stroke: "#e3e8eb" }, svg); txt(svg, { x: L - 6, y: yy + 4, "text-anchor": "end", "font-size": 11, fill: "#7b868c" }, nf.format(t)); });
+      years.forEach(function (y, i) { colorFn(y, i, top, dmax); });
+    }
+    panel(22, function (y) { return ev[y]; }, "Бедствия", function (y, i, top, dmax) {
+      var h = ev[y] / dmax * ph; sv("rect", { x: L + i * bw + 1, y: top + ph - h, width: Math.max(bw - 2, 1), height: h, fill: COL.neutral, rx: 1.5 }, svg);
+    });
+    var top2 = 22 + ph + gap;
+    panel(top2, function (y) { return help[y] + other[y]; }, S.research === "help" ? "Работы о помощи" : "Работы", function (y, i, top, dmax) {
+      var hh = help[y] / dmax * ph, ho = other[y] / dmax * ph;
+      sv("rect", { x: L + i * bw + 1, y: top + ph - hh, width: Math.max(bw - 2, 1), height: hh, fill: COL.help }, svg);
+      sv("rect", { x: L + i * bw + 1, y: top + ph - hh - ho, width: Math.max(bw - 2, 1), height: ho, fill: COL.nlight }, svg);
+    });
+    years.forEach(function (y, i) {
+      if (y % 5 === 0 || i === 0 || i === years.length - 1) txt(svg, { x: L + i * bw + bw / 2, y: H - 8, "text-anchor": "middle", "font-size": 11, fill: "#7b868c" }, String(y));
+      var hit = sv("rect", { x: L + i * bw, y: 10, width: bw, height: H - 30, fill: "transparent" }, svg);
+      hit.addEventListener("mousemove", function (e) {
+        var tot = help[y] + other[y];
+        showTip(e, String(y), [["Бедствий", y > M.year_max ? "нет данных" : nf.format(ev[y])], ["Работ", nf.format(tot)], ["из них о помощи", nf.format(help[y]) + (tot ? " (" + pct(help[y] / tot) + ")" : "")]]);
+      });
+      hit.addEventListener("mouseleave", hideTip);
+    });
+  }
+
+  // ---------- кто кого изучает ----------
+  function renderWho() {
+    var tbl = document.getElementById("heat"); tbl.textContent = "";
+    var cnt = {}, tot = {}, loc = {};
+    REGIONS.forEach(function (r) { cnt[r] = {}; REGIONS.forEach(function (a) { cnt[r][a] = 0; }); tot[r] = 0; loc[r] = 0; });
+    D.pubs.forEach(function (p) {
+      if (!pubOk(p)) return;
+      var ar = {}; p[8].forEach(function (ci) { ar[C[ci][2]] = 1; });
+      p[4].forEach(function (ci) {
+        var rr = C[ci][2]; if (tot[rr] == null) return;
+        tot[rr]++; if (p[7].indexOf(ci) >= 0) loc[rr]++;
+        Object.keys(ar).forEach(function (a) { if (cnt[rr][a] != null) cnt[rr][a]++; });
+      });
+    });
+    var thead = el("thead"), hr = el("tr"); hr.appendChild(el("th", "rh", "Работы о регионе ↓ / авторы из →"));
+    REGIONS.forEach(function (a) { hr.appendChild(el("th", null, a)); });
+    hr.appendChild(el("th", null, "Из той же страны")); hr.appendChild(el("th", null, "Работ"));
+    thead.appendChild(hr); tbl.appendChild(thead);
+    var tb = el("tbody");
+    REGIONS.forEach(function (r) {
+      var tr = el("tr"); var th = el("th", "rh", r); th.style.cursor = "pointer"; if (S.region === r) th.style.color = "var(--accent)";
+      th.addEventListener("click", function () { setRegion(S.region === r ? "" : r); });
+      tr.appendChild(th);
+      REGIONS.concat(["__local"]).forEach(function (a) {
+        var v = a === "__local" ? loc[r] : cnt[r][a], share = tot[r] ? v / tot[r] : 0;
+        var td = el("td", null, tot[r] ? pct(share) : "—");
+        td.style.background = tot[r] ? seq(share) : "#f6f8f9"; td.style.color = share > 0.55 ? "#ffffff" : "#141a1d";
+        if (a === r) td.style.boxShadow = "inset 0 0 0 1.5px #141a1d";
+        td.addEventListener("mousemove", function (e) { showTip(e, r, [[a === "__local" ? "С автором из той же страны" : "С автором из региона «" + a + "»", nf.format(v)], ["Всего работ о регионе", nf.format(tot[r])]], tot[r] ? pct(share) + " работ" : ""); });
+        td.addEventListener("mouseleave", hideTip);
+        tr.appendChild(td);
+      });
+      tr.appendChild(el("td", "n", nf.format(tot[r])));
+      tb.appendChild(tr);
+    });
+    tbl.appendChild(tb);
+  }
+
+  // ---------- таблица ----------
+  var COLS = [
+    { key: "name", label: "Страна", sortDir: 1 }, { key: "events", label: "Бедствий", burden: "events" }, { key: "deaths", label: "Погибшие", burden: "deaths" },
+    { key: "affected", label: "Пострадавшие", burden: "affected" }, { key: "damage", label: "Ущерб, млн $", burden: "damage" }, { key: "papers", label: "Работ" },
+    { key: "help", label: "О помощи" }, { key: "localShare", label: "Есть местный автор" }, { key: "expected", label: "Ожидалось" },
+    { key: "ratio", label: "Разрыв", sortDir: 1 }, { key: "cat", label: "Категория" }
+  ];
+  function renderHead() {
+    var tr = document.getElementById("thead-row"); tr.textContent = "";
+    COLS.forEach(function (c) {
+      var th = el("th"); th.scope = "col";
+      if (c.key === S.sortKey) { th.className = "sorted" + (S.sortDir > 0 ? " asc" : ""); th.setAttribute("aria-sort", S.sortDir > 0 ? "ascending" : "descending"); }
+      if (c.burden && c.burden === S.burden) th.classList.add("is-burden");
+      var bt = el("button", null, c.key === "expected" && S.research === "help" ? "Ожидалось работ о помощи" : c.label); bt.type = "button";
+      bt.addEventListener("click", function () { if (S.sortKey === c.key) S.sortDir = -S.sortDir; else { S.sortKey = c.key; S.sortDir = c.sortDir || -1; } renderTableOnly(); });
+      th.appendChild(bt); tr.appendChild(th);
+    });
+  }
+  function sortVal(r, k) { if (k === "cat") return { deficit: 0, normal: 1, surplus: 2, few: 3 }[r.cat]; if (k === "localShare") return r.localShare == null ? -1 : r.localShare; return r[k]; }
+  function renderChips(base) {
+    var box = document.getElementById("chips"); box.textContent = "";
+    var counts = { "": base.length, deficit: 0, normal: 0, surplus: 0, few: 0 }; base.forEach(function (r) { counts[r.cat]++; });
+    [["", "Все"], ["deficit", CAT.deficit.label], ["normal", CAT.normal.label], ["surplus", CAT.surplus.label], ["few", CAT.few.label]].forEach(function (c) {
+      var b = el("button", "chip"); b.type = "button"; b.setAttribute("aria-pressed", String(S.cat === c[0]));
+      if (c[0]) { var i = el("i"); dotStyle(i, c[0]); b.appendChild(i); }
+      b.appendChild(document.createTextNode(c[1])); b.appendChild(el("span", "n", nf.format(counts[c[0]])));
+      b.addEventListener("click", function () { S.cat = c[0]; render(false); }); box.appendChild(b);
+    });
+  }
+  function gapCell(r) {
+    var wrap = el("span", "gap"), bar = el("span", "gapbar"), s = el("span"), len = Math.min(Math.abs(Math.log(r.ratio)) / Math.log(8), 1) * 36;
+    s.style.width = Math.max(len, 1) + "px"; s.style.left = r.ratio < 1 ? (36 - len) + "px" : "36px"; s.style.background = CAT[r.cat].color;
+    bar.appendChild(s); wrap.appendChild(bar); wrap.appendChild(el("span", null, ratioShort(r.ratio)));
+    wrap.title = "Работ " + ratioText(r.ratio) + ", чем у стран с похожей нагрузкой"; return wrap;
+  }
+  function renderTable(base) {
+    var rows = base.filter(function (r) { return !S.cat || r.cat === S.cat; }), k = S.sortKey, dir = S.sortDir;
+    rows.sort(function (p, q) { var a = sortVal(p, k), b = sortVal(q, k); if (typeof a === "string") return dir * a.localeCompare(b, "ru"); return dir * (a - b) || q.events - p.events; });
+    var tb = document.getElementById("tbody"); tb.textContent = "";
+    if (!rows.length) { var tr0 = el("tr"), td0 = el("td", "empty", "Нет стран под выбранные фильтры. Расширьте период или снимите фильтр региона."); td0.colSpan = COLS.length; tr0.appendChild(td0); tb.appendChild(tr0); return; }
+    rows.forEach(function (r) {
+      var tr = el("tr", "row" + (r.ci === S.open ? " open" : "")); tr.tabIndex = 0; tr.setAttribute("aria-expanded", String(r.ci === S.open)); tr.setAttribute("data-ci", r.ci);
+      var td = el("td"), nm = el("span", "cname"); nm.appendChild(el("b", null, r.name));
+      var sm = el("small"); sm.appendChild(el("span", "code", r.iso)); sm.appendChild(document.createTextNode(" · " + r.region)); nm.appendChild(sm); td.appendChild(nm); tr.appendChild(td);
+      tr.appendChild(el("td", null, nf.format(r.events))); tr.appendChild(el("td", null, nf.format(r.deaths)));
+      tr.appendChild(el("td", null, r.affected >= 10000 ? cf.format(r.affected) : nf.format(r.affected)));
+      tr.appendChild(el("td", null, r.damage ? big(r.damage) : "—"));
+      tr.appendChild(el("td", null, nf.format(r.papers))); tr.appendChild(el("td", null, nf.format(r.help)));
+      tr.appendChild(el("td", r.localShare == null ? "muted" : null, r.localShare == null ? "—" : pct(r.localShare)));
+      tr.appendChild(el("td", null, nf1.format(r.expected)));
+      var tg = el("td"); tg.appendChild(gapCell(r)); tr.appendChild(tg);
+      var tc = el("td"), pill = el("span", "pill"), dot = el("i"); dotStyle(dot, r.cat); pill.appendChild(dot); pill.appendChild(document.createTextNode(CAT[r.cat].short)); tc.appendChild(pill); tr.appendChild(tc);
+      function toggle() { openCountry(S.open === r.ci ? -1 : r.ci, false); }
+      tr.addEventListener("click", toggle);
+      tr.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+      tb.appendChild(tr);
+      if (r.ci === S.open) tb.appendChild(detailRow(r));
+    });
+  }
+
+  function detailRow(r) {
+    var tr = el("tr", "detail"), td = el("td"); td.colSpan = COLS.length; var det = el("div", "det");
+    var hzName = S.hazard === "natural" ? "природных бедствий" : S.hazard === "all" ? "бедствий" : "событий типа «" + HZ[hIdx[S.hazard]][1].toLowerCase() + "»";
+    var sum = el("p", "sum");
+    sum.appendChild(document.createTextNode("За " + S.from + "–" + S.to + ": ")); sum.appendChild(el("strong", null, nf.format(r.events) + " " + hzName));
+    sum.appendChild(document.createTextNode(", " + nf.format(r.deaths) + " погибших, " + cf.format(r.affected) + " пострадавших. Работ за " + S.from + "–" + (S.to + LAG) + ": "));
+    sum.appendChild(el("strong", null, nf.format(r.papers)));
+    sum.appendChild(document.createTextNode(" (о помощи — " + nf.format(r.help) + ", РКИ — " + nf.format(r.rct) + "). Ожидалось ≈ " + nf1.format(r.expected) + (S.research === "help" ? " работ о помощи" : "") + ": " + (Math.abs(Math.log(r.ratio)) < 0.1 ? "почти столько же." : "фактически " + ratioText(r.ratio) + ".")));
+    det.appendChild(sum);
+    var left = el("div");
+    left.appendChild(el("h3", null, "По типам бедствий"));
+    var t = el("table"), th = el("tr"); ["Тип", "Бедствий", "Работ"].forEach(function (h, i) { var c = el("th", null, h); if (!i) c.style.textAlign = "left"; th.appendChild(c); });
+    var thead = el("thead"); thead.appendChild(th); t.appendChild(thead);
+    var tbd = el("tbody"), byH = {};
+    function rowOk(i) { return i === hIdx.generic ? (S.hazard === "natural" || S.hazard === "all") : hazardOk(S.hazard, 1 << i); }
+    D.dis.forEach(function (d) { if (d[0] === r.ci && d[1] >= S.from && d[1] <= S.to && rowOk(d[2])) (byH[d[2]] = byH[d[2]] || [0, 0])[0] += d[3]; });
+    var mine = D.pubs.filter(function (p) { return pubOk(p) && p[4].indexOf(r.ci) >= 0; });
+    mine.forEach(function (p) { HZ.forEach(function (h, i) { if ((p[5] & (1 << i)) && rowOk(i)) (byH[i] = byH[i] || [0, 0])[1]++; }); });
+    HZ.forEach(function (h, i) {
+      var v = byH[i]; if (!v) return;
+      var row = el("tr"), c0 = el("td", null, h[1]); c0.style.textAlign = "left"; c0.style.whiteSpace = "normal"; row.appendChild(c0);
+      row.appendChild(el("td", null, i === hIdx.generic ? "—" : nf.format(v[0]))); row.appendChild(el("td", null, nf.format(v[1]))); tbd.appendChild(row);
+    });
+    t.appendChild(tbd); left.appendChild(t);
+    var note = el("p", "note", "Работа может относиться к нескольким типам."); note.style.margin = "6px 0 14px"; left.appendChild(note);
+    // кто пишет
+    left.appendChild(el("h3", null, "Кто пишет"));
+    var byA = {}; mine.forEach(function (p) { p[8].forEach(function (ci) { byA[ci] = (byA[ci] || 0) + 1; }); });
+    var auth = Object.keys(byA).map(function (k) { return [+k, byA[k]]; }).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 6);
+    var wl = el("ul", "who-list");
+    if (!mine.length) wl.appendChild(el("li", "muted", "Работ нет."));
+    auth.forEach(function (a) {
+      var li = el("li"), share = a[1] / mine.length;
+      li.appendChild(el("span", null, C[a[0]][1]));
+      var bar = el("span", "bar"), s = el("span", a[0] === r.ci ? "loc" : null); s.style.width = Math.round(share * 100) + "%"; bar.appendChild(s); li.appendChild(bar);
+      li.appendChild(el("span", "muted", pct(share)));
+      wl.appendChild(li);
+    });
+    left.appendChild(wl);
+    if (mine.length) { var n2 = el("p", "note", "Доля работ о стране с хотя бы одним автором из указанной страны; цветом — местные авторы."); n2.style.margin = "6px 0 14px"; left.appendChild(n2); }
+    left.appendChild(el("h3", null, "Крупнейшие бедствия"));
+    var evs = D.ev.filter(function (e) { return e[0] === r.ci && e[1] >= S.from && e[1] <= S.to && hazardOk(S.hazard, 1 << e[2]); }).sort(function (p, q) { return q[4] - p[4] || q[5] - p[5]; }).slice(0, 6);
+    var ul = el("ul", "ev-list");
+    evs.forEach(function (e) {
+      var li = el("li"); li.appendChild(el("span", "muted", String(e[1])));
+      var cut = e[3].indexOf(" — "), d = el("span"); d.appendChild(document.createTextNode(cut < 0 ? e[3] : e[3].slice(0, cut))); if (cut >= 0) d.appendChild(el("span", "muted", e[3].slice(cut)));
+      li.appendChild(d); li.appendChild(el("span", "num", nf.format(e[4]) + " погиб.")); ul.appendChild(li);
+    });
+    if (!evs.length) ul.appendChild(el("li", "muted", "Нет событий за период."));
+    left.appendChild(ul); det.appendChild(left);
+    var right = el("div");
+    right.appendChild(el("h3", null, (S.research === "help" ? "Работы о помощи" : "Работы") + " · " + nf.format(mine.length)));
+    var pl = el("ul", "pub-list");
+    mine.slice(0, S.shown).forEach(function (p) {
+      var li = el("li"); li.appendChild(el("span", "muted", String(p[1])));
+      var body = el("div"), a = el("a", null, p[2]); a.href = "https://pubmed.ncbi.nlm.nih.gov/" + p[0] + "/"; a.target = "_blank"; a.rel = "noopener"; body.appendChild(a);
+      var meta = el("div", "meta"); meta.appendChild(el("span", null, p[3])); meta.appendChild(el("span", "code", "PMID " + p[0]));
+      if (p[6] & 1) meta.appendChild(el("span", "tag", "о помощи")); if (p[6] & 2) meta.appendChild(el("span", "tag", "РКИ")); if (p[6] & 4) meta.appendChild(el("span", "tag", "обзор"));
+      if (p[7].indexOf(r.ci) >= 0) meta.appendChild(el("span", "tag", "местный автор"));
+      if (p[4].length > 1) meta.appendChild(el("span", null, "ещё " + (p[4].length - 1) + " " + plural(p[4].length - 1, "страна", "страны", "стран")));
+      body.appendChild(meta); li.appendChild(body); pl.appendChild(li);
+    });
+    if (!mine.length) pl.appendChild(el("li", "muted", "Ни одной работы за период. Это и есть пробел."));
+    right.appendChild(pl);
+    if (mine.length > S.shown) { var more = el("button", "more", "Показать ещё " + Math.min(50, mine.length - S.shown)); more.type = "button"; more.style.marginTop = "10px"; more.addEventListener("click", function (e) { e.stopPropagation(); S.shown += 50; renderTableOnly(); }); right.appendChild(more); }
+    det.appendChild(right); td.appendChild(det); tr.appendChild(td); return tr;
+  }
+
+  function openCountry(ci, scroll) {
+    S.open = ci; S.shown = 25;
+    if (ci >= 0) { var r = R.filter(function (x) { return x.ci === ci; })[0]; if (r && S.cat && r.cat !== S.cat) S.cat = ""; if (r && S.region && r.region !== S.region) { S.region = ""; document.getElementById("f-region").value = ""; } }
+    render(false);
+    if (scroll && ci >= 0) { var row = document.querySelector("tr.row.open"); if (row) row.scrollIntoView({ block: "center", behavior: "smooth" }); }
+  }
+  function setRegion(r) { S.region = r; document.getElementById("f-region").value = r; render(false); }
+
+  // ---------- схема проекта ----------
+  var T = M.tables || {};
+  var NODES = [
+    { id: "emdat", col: 0, row: 0, title: "EM-DAT", sub: nf.format(T.emdat_events || 0) + " событий", desc: "Архив EM-DAT (CRED, UCLouvain), версия " + M.emdat_version + ": все бедствия 1900–2024 гг. Конвертируется в CSV.", file: "scripts/01_emdat_to_csv.py" },
+    { id: "pubmed", col: 0, row: 1, title: "PubMed", sub: nf.format(T.publications || 0) + " записей", desc: "Выгрузка через NCBI E-utilities: работы 2000–2025 гг. о бедствиях и психике; сырые XML кешируются.", file: "scripts/02_fetch_pubmed.py" },
+    { id: "ref", col: 0, row: 2, title: "Справочники", sub: "страны и шаблоны", desc: "Русские названия стран и регулярные выражения для их поиска в текстах — ручная работа проекта.", file: "data/reference/" },
+    { id: "t_emdat", col: 1, row: 0, title: "emdat_events", sub: nf.format(T.emdat_events || 0), desc: "События с типом, жертвами, пострадавшими, ущербом и затронутыми районами (jsonb).", file: "sql/01_schema.sql, sql/02_load.sql" },
+    { id: "t_pubs", col: 1, row: 1, title: "publications", sub: nf.format(T.publications || 0), desc: "Работы: название, аннотация, журнал, DOI, тип публикации, флаги «учитывается», «о помощи», РКИ.", file: "sql/02_load.sql" },
+    { id: "t_mesh", col: 1, row: 2, title: "publication_mesh", sub: nf.format(T.publication_mesh || 0), desc: "Рубрики MeSH. Географические рубрики показывают, где проводилось исследование.", file: "sql/02_load.sql" },
+    { id: "t_aff", col: 1, row: 3, title: "publication_affiliations", sub: nf.format(T.publication_affiliations || 0), desc: "Места работы авторов в том виде, как они указаны в PubMed.", file: "sql/02_load.sql" },
+    { id: "t_rules", col: 1, row: 4, title: "classification_rules", sub: nf.format(T.classification_rules || 0) + " правил", desc: "Правила разметки: тип бедствия, «о помощи», исключаемые контексты (COVID-19, теракты, войны).", file: "sql/01_schema.sql" },
+    { id: "t_pat", col: 1, row: 5, title: "country_patterns", sub: nf.format(T.country_patterns || 0) + " шаблонов", desc: "Регулярные выражения для распознавания " + nf.format(T.countries || 0) + " стран в текстах, рубриках и аффилиациях.", file: "data/reference/country_patterns.csv" },
+    { id: "c_tags", col: 2, row: 1, title: "publication_tags", sub: nf.format(T.publication_tags || 0), desc: "Метки работ по правилам: типы бедствий, help, контексты.", file: "sql/03_classify.sql" },
+    { id: "c_pc", col: 2, row: 2, title: "publication_countries", sub: nf.format(T.publication_countries || 0), desc: "О какой стране работа: MeSH → название → аннотация.", file: "sql/03_classify.sql" },
+    { id: "c_ac", col: 2, row: 3, title: "publication_author_countries", sub: nf.format(T.publication_author_countries || 0), desc: "Страны авторов по аффилиациям (распознано " + nf.format(T.affiliation_countries || 0) + " уникальных строк).", file: "sql/03_classify.sql" },
+    { id: "v_dis", col: 3, row: 0.5, title: "v_disasters_country_year", sub: "представление", desc: "Бедствия по стране, году и типу с 2000 г.", file: "sql/04_analytics.sql" },
+    { id: "v_pub", col: 3, row: 2, title: "v_publication_country", sub: "представление", desc: "Работы по странам: год, типы бедствий, о помощи ли, есть ли местный автор.", file: "sql/04_analytics.sql" },
+    { id: "gap", col: 3, row: 3.5, title: "gap_analysis()", sub: "функция", desc: "Ожидаемое число работ по регрессии и разрыв по каждой стране; параметры — годы, тип, мера нагрузки, вид работ.", file: "sql/04_analytics.sql" },
+    { id: "rob", col: 3, row: 5, title: "gap_analysis_variant()", sub: "11 проверок", desc: "Те же расчёты при других допущениях и пуассоновская модель — проверки устойчивости.", file: "sql/07_robustness.sql" },
+    { id: "page", col: 4, row: 1, title: "Эта страница", sub: "интерактив", desc: "Выгрузка базы в JSON и сборка HTML; расчёты повторены в браузере и совпадают с gap_analysis().", file: "sql/05_export_json.sql, scripts/03_build_html.py" },
+    { id: "report", col: 4, row: 2.5, title: "Отчёт", sub: "статья", desc: "Аналитический отчёт: методы, результаты, проверки устойчивости, литература. Все числа пересчитываются скриптом.", file: "sql/08_report_numbers.sql" },
+    { id: "results", col: 4, row: 4, title: "results/", sub: "вывод запросов", desc: "Вывод примеров запросов, проверок устойчивости и всех чисел отчёта.", file: "sql/06_examples.sql" }
+  ];
+  var EDGES = [["emdat", "t_emdat"], ["pubmed", "t_pubs"], ["pubmed", "t_mesh"], ["pubmed", "t_aff"], ["ref", "t_rules"], ["ref", "t_pat"],
+    ["t_pubs", "c_tags"], ["t_mesh", "c_tags"], ["t_rules", "c_tags"], ["t_pubs", "c_pc"], ["t_mesh", "c_pc"], ["t_pat", "c_pc"], ["t_aff", "c_ac"], ["t_pat", "c_ac"],
+    ["t_emdat", "v_dis"], ["c_tags", "v_pub"], ["c_pc", "v_pub"], ["c_ac", "v_pub"], ["v_dis", "gap"], ["v_pub", "gap"], ["gap", "rob"],
+    ["v_dis", "page"], ["v_pub", "page"], ["gap", "report"], ["rob", "report"], ["gap", "results"], ["rob", "results"]];
+  var schemaSel = "gap";
+  function renderSchema() {
+    var host = document.getElementById("schema-plot"); host.textContent = "";
+    var W = 1140, colX = [10, 216, 462, 728, 966], colW = [170, 214, 236, 206, 164], rowH = 62, top = 34, bh = 46, H = top + rowH * 6 + 4;
+    var svg = sv("svg", { viewBox: "0 0 " + W + " " + H, role: "img", "aria-label": "Схема проекта: от источников данных к результатам" }, host);
+    ["Источники", "Таблицы PostgreSQL", "Разметка (03_classify.sql)", "Аналитика", "Результаты"].forEach(function (h, i) { txt(svg, { x: colX[i], y: 18, "font-size": 12, fill: "#7b868c", "font-weight": 600 }, h.toUpperCase()); });
+    var pos = {}; NODES.forEach(function (n) { pos[n.id] = { x: colX[n.col], y: top + n.row * rowH, w: colW[n.col] }; });
+    var related = {}; related[schemaSel] = true;
+    EDGES.forEach(function (e) { if (e[0] === schemaSel) related[e[1]] = true; if (e[1] === schemaSel) related[e[0]] = true; });
+    var eg = sv("g", {}, svg);
+    EDGES.forEach(function (e) {
+      var a = pos[e[0]], b = pos[e[1]], x1 = a.x + a.w, y1 = a.y + bh / 2, x2 = b.x, y2 = b.y + bh / 2, mx = (x1 + x2) / 2;
+      var on = e[0] === schemaSel || e[1] === schemaSel;
+      sv("path", { d: "M" + x1 + "," + y1 + " C" + mx + "," + y1 + " " + mx + "," + y2 + " " + (x2 - 4) + "," + y2, fill: "none", stroke: on ? COL.help : "#c8d0d5", "stroke-width": on ? 2 : 1.2, "marker-end": on ? "url(#arr-on)" : "url(#arr)" }, eg);
+    });
+    var defs = sv("defs", {}, svg);
+    [["arr", "#c8d0d5"], ["arr-on", COL.help]].forEach(function (m) { var mk = sv("marker", { id: m[0], viewBox: "0 0 8 8", refX: 7, refY: 4, markerWidth: 7, markerHeight: 7, orient: "auto" }, defs); sv("path", { d: "M0,0 L8,4 L0,8 Z", fill: m[1] }, mk); });
+    NODES.forEach(function (n) {
+      var p = pos[n.id], on = n.id === schemaSel, rel = related[n.id];
+      var g = sv("g", { "class": "node", tabindex: 0, role: "button", "aria-label": n.title }, svg);
+      sv("rect", { x: p.x, y: p.y, width: p.w, height: bh, rx: 7, fill: on ? COL.help : rel ? "#eef5f8" : "#ffffff", stroke: on ? COL.help : rel ? COL.help : "#c8d0d5", "stroke-width": on ? 2 : 1 }, g);
+      txt(g, { x: p.x + 10, y: p.y + 19, "font-size": n.col === 0 || n.col === 4 ? 13 : 12, "font-weight": 600, fill: on ? "#ffffff" : "#141a1d", "font-family": n.col >= 1 && n.col <= 3 ? "ui-monospace, Menlo, monospace" : "inherit" }, n.title);
+      txt(g, { x: p.x + 10, y: p.y + 36, "font-size": 11.5, fill: on ? "#e6f0f3" : "#48535a" }, n.sub);
+      function pick() { schemaSel = n.id; renderSchema(); }
+      g.addEventListener("click", pick); g.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+    });
+    var n = NODES.filter(function (x) { return x.id === schemaSel; })[0], info = document.getElementById("schema-info"); info.textContent = "";
+    info.appendChild(el("b", null, n.title + " · " + n.sub)); info.appendChild(el("span", null, n.desc));
+    var f = el("span"); f.appendChild(document.createTextNode("Файл: ")); f.appendChild(el("code", null, n.file)); info.appendChild(f);
+  }
+
+  // ---------- общий рендер ----------
+  function renderTableOnly() { var base = visibleBase(); renderHead(); renderChips(base); renderTable(base); }
+  function render(recompute) {
+    if (recompute !== false) compute();
+    var base = visibleBase();
+    renderSummary(base); renderMap(); renderScatter(base); renderFlow(); renderHazards(); renderTrend(); renderWho();
+    renderHead(); renderChips(base); renderTable(base);
+  }
+
+  // ---------- фильтры ----------
+  var fFrom = document.getElementById("f-from"), fTo = document.getElementById("f-to");
+  for (var y = M.year_min; y <= M.year_max; y++) { fFrom.appendChild(new Option(String(y), String(y))); fTo.appendChild(new Option(String(y), String(y))); }
+  fFrom.value = String(S.from); fTo.value = String(S.to);
+  var fH = document.getElementById("f-hazard");
+  fH.appendChild(new Option("Все природные", "natural"));
+  HZ.forEach(function (h) { if (h[2] === "Natural") fH.appendChild(new Option("  " + h[1], h[0])); });
+  fH.appendChild(new Option("Техногенные катастрофы", "technological")); fH.appendChild(new Option("Все (природные и техногенные)", "all"));
+  var fR = document.getElementById("f-region");
+  REGIONS.slice().sort(function (a, b) { return a.localeCompare(b, "ru"); }).forEach(function (r) { fR.appendChild(new Option(r, r)); });
+  function onYears(changed) { var a = +fFrom.value, b = +fTo.value; if (a > b) { if (changed === "from") { b = a; fTo.value = String(b); } else { a = b; fFrom.value = String(a); } } S.from = a; S.to = b; render(); }
+  fFrom.addEventListener("change", function () { onYears("from"); }); fTo.addEventListener("change", function () { onYears("to"); });
+  fH.addEventListener("change", function () { S.hazard = fH.value; render(); });
+  document.getElementById("f-burden").addEventListener("change", function (e) { S.burden = e.target.value; render(); });
+  fR.addEventListener("change", function () { S.region = fR.value; render(false); });
+  document.getElementById("f-q").addEventListener("input", function (e) { S.q = e.target.value; render(false); });
+  var bAll = document.getElementById("f-res-all"), bHelp = document.getElementById("f-res-help");
+  function setRes(v) { S.research = v; bAll.setAttribute("aria-pressed", String(v === "all")); bHelp.setAttribute("aria-pressed", String(v === "help")); render(); }
+  bAll.addEventListener("click", function () { setRes("all"); }); bHelp.addEventListener("click", function () { setRes("help"); });
+
+  document.getElementById("m-emdat").textContent = M.emdat_version + " (" + nf.format(M.emdat_events) + " событий с 2000 г.)";
+  document.getElementById("m-pubmed").textContent = M.pubmed_fetched;
+  document.getElementById("m-pubs").textContent = nf.format(M.pubs_total) + " найдено, " + nf.format(M.pubs_included) + " учтено, у " + nf.format(M.pubs_with_country) + " определена страна";
+  renderSchema();
+  render();
+  // при смене ширины (телефон ↔ компьютер) графики перестраиваются под компактную или полную раскладку
+  var rt, lastNarrow = narrow(scatterEl);
+  window.addEventListener("resize", function () {
+    clearTimeout(rt);
+    rt = setTimeout(function () { var n = narrow(scatterEl); if (n !== lastNarrow) { lastNarrow = n; render(false); } }, 150);
+  });
+})();
+</script>

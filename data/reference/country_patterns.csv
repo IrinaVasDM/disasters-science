@@ -1,0 +1,420 @@
+iso3,pattern,scope,kind
+AFG,"\mAfghanistan\M(?! [Vv]eterans?)(?! [Ww]ar)",any,name
+AFG,"\mAfghans?\M",text,demonym
+AGO,"\mAngolan?\M",any,name
+AIA,"\mAnguilla\M",any,name
+ALB,"\mAlbania\M",any,name
+ALB,"\mAlbanian\M",text,demonym
+ANT,"\mNetherlands Antilles\M",any,name
+ARE,"\mUnited Arab Emirates\M",any,name
+ARE,"\mUAE\M",text,abbrev
+ARE,"\mDubai\M|\mAbu Dhabi\M",text,subnational
+ARG,"\mArgentina\M",any,name
+ARG,"\mArgentin(e|ian)\M",text,demonym
+ARM,"\mArmenia\M(?!,? (Quind|Colombia))",any,name
+ARM,"\mArmenian\M",text,demonym
+ASM,"\mAmerican Samoa\M",any,name
+ATG,"\mAntigua\M",any,name
+AUS,"\mAustralia\M",any,name
+AUS,"\mAustralian\M",text,demonym
+AUS,"\mNew South Wales\M|\mQueensland\M|\mTasmania\M|\mNorthern Territory\M",any,subnational
+AUS,"^Victoria$",mesh,subnational
+AUT,"\mAustria\M",any,name
+AUT,"\mAustrian\M",text,demonym
+AZE,"\mAzerbaijan\M",any,name
+AZE,"\mAzerbaijani\M",text,demonym
+BDI,"\mBurundi\M",any,name
+BDI,"\mBurundian\M",text,demonym
+BEL,"\mBelgium\M",any,name
+BEL,"\mBelgian\M",text,demonym
+BEN,"\mBenin\M(?! City)",any,name
+BEN,"\mBeninese\M",text,demonym
+BFA,"\mBurkina Faso\M",any,name
+BGD,"\mBangladesh\M",any,name
+BGD,"\mBangladeshi\M",text,demonym
+BGR,"\mBulgaria\M",any,name
+BGR,"\mBulgarian\M",text,demonym
+BHR,"\mBahrain\M",any,name
+BHS,"\mBahamas\M",any,name
+BHS,"\mBahamian\M",text,demonym
+BIH,"\mBosnia\M|\mHerzegovina\M",any,name
+BIH,"\mBosnian\M",text,demonym
+BLM,"\mSaint[- ]Barth[eé]lemy\M|\mSt\.? Barth",any,name
+BLR,"\mBelarus\M|\mByelorussia\M",any,name
+BLR,"\mBelarusian\M",text,demonym
+BLZ,"\mBelize\M",any,name
+BMU,"\mBermuda\M",any,name
+BOL,"\mBolivia\M",any,name
+BOL,"\mBolivian\M",text,demonym
+BRA,"\mBrazil\M",any,name
+BRA,"\mBrazilian\M",text,demonym
+BRB,"\mBarbados\M",any,name
+BTN,"\mBhutan\M",any,name
+BTN,"\mBhutanese\M",text,demonym
+BWA,"\mBotswana\M",any,name
+CAF,"\mCentral African Republic\M",any,name
+CAN,"\mCanada\M",any,name
+CAN,"\mCanadian\M",text,demonym
+CAN,"\mOntario\M|\mQu[eé]bec\M|\mBritish Columbia\M|\mAlberta\M|\mManitoba\M|\mSaskatchewan\M|\mNova Scotia\M|\mNew Brunswick\M|\mNewfoundland\M|\mPrince Edward Island\M|\mYukon\M|\mNorthwest Territories\M|\mNunavut\M|\mFort McMurray\M",any,subnational
+CHE,"\mSwitzerland\M",any,name
+CHE,"\mSwiss\M",text,demonym
+CHL,"\mChile\M",any,name
+CHL,"\mChilean\M",text,demonym
+CHN,"(?<!Republic of )\mChina\M|\mPeople.s Republic of China\M",any,name
+CHN,"\mPRC\M",text,abbrev
+CHN,"\mChinese\M",text,demonym
+CHN,"^Tibet$",mesh,subnational
+CIV,"\mC[oô]te d.Ivoire\M|\mIvory Coast\M",any,name
+CIV,"\mIvorian\M",text,demonym
+CMR,"\mCameroon\M",any,name
+CMR,"\mCameroonian\M",text,demonym
+COD,"\mDemocratic Republic of (the )?Congo\M|\mDR ?Congo\M|\mDRC\M|\mCongo-Kinshasa\M|\mZaire\M",any,name
+COD,"(?<!Republic of the )(?<!Republic of )\mCongo\M(?!-Brazzaville)",text,name
+COG,"(?<!Democratic )\mRepublic of (the )?Congo\M|\mCongo-Brazzaville\M|\mBrazzaville\M",any,name
+COG,"^Congo$",mesh,name
+COK,"\mCook Islands\M",any,name
+COL,"\mColombia\M",any,name
+COL,"\mColombian\M",text,demonym
+COM,"\mComoros\M",any,name
+CPV,"\mCabo Verde\M|\mCape Verde\M",any,name
+CRI,"\mCosta Rica\M",any,name
+CRI,"\mCosta Rican\M",text,demonym
+CUB,"\mCuba\M",any,name
+CUB,"\mCuban\M",text,demonym
+CUW,"\mCura[cç]ao\M",any,name
+CYM,"\mCayman Islands\M",any,name
+CYP,"\mCyprus\M",any,name
+CYP,"\mCypriot\M",text,demonym
+CZE,"\mCzech Republic\M|\mCzechia\M",any,name
+CZE,"\mCzech\M(?! Republic)",text,demonym
+DEU,"\mGermany\M",any,name
+DEU,"\mGerman\M",text,demonym
+DJI,"\mDjibouti\M",any,name
+DMA,"\mDominica\M",any,name
+DNK,"\mDenmark\M",any,name
+DNK,"\mDanish\M",text,demonym
+DOM,"\mDominican Republic\M",any,name
+DZA,"\mAlgeria\M",any,name
+DZA,"\mAlgerian\M",text,demonym
+ECU,"\mEcuador\M",any,name
+ECU,"\mEcuadorian\M",text,demonym
+EGY,"\mEgypt\M",any,name
+EGY,"\mEgyptian\M",text,demonym
+ERI,"\mEritrea\M",any,name
+ERI,"\mEritrean\M",text,demonym
+ESP,"\mSpain\M",any,name
+ESP,"\mSpanish\M",text,demonym
+EST,"\mEstonia\M",any,name
+EST,"\mEstonian\M",text,demonym
+ETH,"\mEthiopia\M",any,name
+ETH,"\mEthiopian\M",text,demonym
+FIN,"\mFinland\M",any,name
+FIN,"\mFinnish\M",text,demonym
+FJI,"\mFiji\M",any,name
+FJI,"\mFijian\M",text,demonym
+FRA,"\mFrance\M",any,name
+FRA,"\mFrench\M(?! Polynesia)(?! Guiana)(?!-speaking)",text,demonym
+FSM,"\mFederated States of Micronesia\M|\mPohnpei\M|\mChuuk\M|\mKosrae\M",any,name
+GAB,"\mGabon\M",any,name
+GAB,"\mGabonese\M",text,demonym
+GBR,"\mUnited Kingdom\M|\mGreat Britain\M|\mBritain\M|(?<!New )\mEngland\M|\mScotland\M|(?<!South )\mWales\M|\mNorthern Ireland\M",any,name
+GBR,"\mLondon\M(?!,? Ontario)",any,subnational
+GBR,"\mUK\M|\mU\.K\.",text,abbrev
+GBR,"\mBritish\M(?! Columbia)(?! Virgin)|\mScottish\M|\mWelsh\M",text,demonym
+GEO,"^Georgia \(Republic\)$",mesh,name
+GEO,"(?<!Atlanta, )(?<!Athens, )(?<!Augusta, )(?<!Savannah, )(?<!Macon, )\mGeorgia\M(?!,? (USA|United States|U\.S\.))(?! State)|\mTbilisi\M",text,name
+GHA,"\mGhana\M",any,name
+GHA,"\mGhanaian\M",text,demonym
+GIN,"(?<!New )(?<!Equatorial )\mGuinea\M(?!-Bissau)(?! Bissau)(?! [Pp]ig)",any,name
+GIN,"(?<!New )(?<!Equatorial )\mGuinean\M",text,demonym
+GLP,"\mGuadeloupe\M",any,name
+GMB,"\mGambia\M",any,name
+GMB,"\mGambian\M",text,demonym
+GNB,"\mGuinea[- ]Bissau\M",any,name
+GNQ,"\mEquatorial Guinea\M",any,name
+GRC,"\mGreece\M",any,name
+GRC,"\mGreek\M",text,demonym
+GRD,"\mGrenada\M",any,name
+GTM,"\mGuatemala\M",any,name
+GTM,"\mGuatemalan\M",text,demonym
+GUF,"\mFrench Guiana\M",any,name
+GUM,"\mGuam\M",any,name
+GUY,"\mGuyana\M",any,name
+GUY,"\mGuyanese\M",text,demonym
+HKG,"\mHong Kong\M",any,name
+HND,"\mHonduras\M",any,name
+HND,"\mHonduran\M",text,demonym
+HRV,"\mCroatia\M",any,name
+HRV,"\mCroatian\M",text,demonym
+HTI,"\mHa[iï]ti\M|\mPort-au-Prince\M",any,name
+HTI,"\mHaitian\M",text,demonym
+HUN,"\mHungary\M",any,name
+HUN,"\mHungarian\M",text,demonym
+IDN,"\mIndonesia\M",any,name
+IDN,"\mIndonesian\M",text,demonym
+IND,"\mIndia\M",any,name
+IRL,"(?<!Northern )\mIreland\M",any,name
+IRL,"(?<!Northern )\mIrish\M",text,demonym
+IRN,"\mIran\M",any,name
+IRN,"\mIranian\M",text,demonym
+IRQ,"\mIraq\M(?! [Vv]eterans?)(?! [Ww]ar)",any,name
+IRQ,"\mIraqi\M",text,demonym
+ISL,"\mIceland\M",any,name
+ISL,"\mIcelandic\M",text,demonym
+ISR,"\mIsrael\M",any,name
+ISR,"\mIsraeli\M",text,demonym
+ITA,"\mItaly\M",any,name
+ITA,"\mItalian\M",text,demonym
+JAM,"\mJamaica\M",any,name
+JAM,"\mJamaican\M",text,demonym
+JOR,"\mJordan\M",any,name
+JOR,"\mJordanian\M",text,demonym
+JPN,"\mJapan\M",any,name
+JPN,"\mJapanese\M",text,demonym
+KAZ,"\mKazakhstan\M",any,name
+KAZ,"\mKazakh\M",text,demonym
+KEN,"\mKenya\M",any,name
+KEN,"\mKenyan\M",text,demonym
+KGZ,"\mKyrgyzstan\M|\mKyrgyz Republic\M|\mKirghizia\M",any,name
+KGZ,"\mKyrgyz\M(?! Republic)",text,demonym
+KHM,"\mCambodia\M",any,name
+KHM,"\mCambodian\M",text,demonym
+KIR,"\mKiribati\M",any,name
+KNA,"\mSaint Kitts\M|\mSt\.? Kitts\M|\mNevis\M",any,name
+KOR,"(?<!North )(?<!People.s Republic of )\mKorea\M",any,name
+KOR,"(?<!North )\mKorean\M",text,demonym
+KWT,"\mKuwait\M",any,name
+KWT,"\mKuwaiti\M",text,demonym
+LAO,"\mLaos\M|\mLao People.s Democratic Republic\M|\mLao PDR\M",any,name
+LAO,"\mLaotian\M",text,demonym
+LBN,"\mLebanon\M",any,name
+LBN,"\mLebanese\M",text,demonym
+LBR,"\mLiberia\M",any,name
+LBR,"\mLiberian\M",text,demonym
+LBY,"\mLibya\M",any,name
+LBY,"\mLibyan\M",text,demonym
+LCA,"\mSaint Lucia\M|\mSt\.? Lucia\M",any,name
+LIE,"\mLiechtenstein\M",any,name
+LKA,"\mSri Lanka\M",any,name
+LKA,"\mSri Lankan\M",text,demonym
+LSO,"\mLesotho\M",any,name
+LTU,"\mLithuania\M",any,name
+LTU,"\mLithuanian\M",text,demonym
+LUX,"\mLuxembourg\M",any,name
+LVA,"\mLatvia\M",any,name
+LVA,"\mLatvian\M",text,demonym
+MAC,"\mMaca[ou]\M",any,name
+MAF,"\mSaint[- ]Martin\M|\mSt\.? Martin\M",any,name
+MAR,"\mMorocco\M",any,name
+MAR,"\mMoroccan\M",text,demonym
+MDA,"\mMoldova\M",any,name
+MDA,"\mMoldovan\M",text,demonym
+MDG,"\mMadagascar\M",any,name
+MDG,"\mMalagasy\M",text,demonym
+MDV,"\mMaldives\M",any,name
+MDV,"\mMaldivian\M",text,demonym
+MEX,"(?<!New )(?<!Gulf of )\mMexico\M",any,name
+MEX,"\mMexican\M(?![- ]American)",text,demonym
+MHL,"\mMarshall Islands\M",any,name
+MKD,"\mNorth Macedonia\M|\mMacedonia\M",any,name
+MLI,"\mMali\M",any,name
+MLI,"\mMalian\M",text,demonym
+MLT,"\mMalta\M",any,name
+MLT,"\mMaltese\M",text,demonym
+MMR,"\mMyanmar\M|\mBurma\M",any,name
+MMR,"\mBurmese\M",text,demonym
+MNE,"\mMontenegro\M",any,name
+MNE,"\mMontenegrin\M",text,demonym
+MNG,"(?<!Inner )\mMongolia\M",any,name
+MNG,"(?<!Inner )\mMongolian\M",text,demonym
+MNP,"\mNorthern Mariana Islands\M|\mSaipan\M",any,name
+MOZ,"\mMozambique\M",any,name
+MOZ,"\mMozambican\M",text,demonym
+MRT,"\mMauritania\M",any,name
+MRT,"\mMauritanian\M",text,demonym
+MSR,"\mMontserrat\M",any,name
+MTQ,"\mMartinique\M",any,name
+MUS,"\mMauritius\M",any,name
+MUS,"\mMauritian\M",text,demonym
+MWI,"\mMalawi\M",any,name
+MWI,"\mMalawian\M",text,demonym
+MYS,"\mMalaysia\M",any,name
+MYS,"\mMalaysian\M",text,demonym
+MYT,"\mMayotte\M",any,name
+NAM,"\mNamibia\M",any,name
+NAM,"\mNamibian\M",text,demonym
+NCL,"\mNew Caledonia\M",any,name
+NER,"\mNiger\M(?! Delta)",any,name
+NER,"\mNigerien\M",text,demonym
+NGA,"\mNigeria\M|\mNiger Delta\M",any,name
+NGA,"\mNigerian\M",text,demonym
+NIC,"\mNicaragua\M",any,name
+NIC,"\mNicaraguan\M",text,demonym
+NIU,"\mNiue\M",any,name
+NLD,"\mNetherlands\M(?! Antilles)|\mHolland\M",any,name
+NLD,"\mDutch\M",text,demonym
+NOR,"\mNorway\M",any,name
+NOR,"\mNorwegian\M",text,demonym
+NPL,"\mNepal\M",any,name
+NPL,"\mNepalese\M|\mNepali\M",text,demonym
+NZL,"\mNew Zealand\M|\mAotearoa\M",any,name
+OMN,"\mOman\M",any,name
+OMN,"\mOmani\M",text,demonym
+PAK,"\mPakistan\M",any,name
+PAK,"\mPakistani\M",text,demonym
+PAN,"\mPanama\M(?! City,? (Florida|FL)\M)",any,name
+PAN,"\mPanamanian\M",text,demonym
+PER,"\mPeru\M",any,name
+PER,"\mPeruvian\M",text,demonym
+PHL,"\mPhilippines\M",any,name
+PHL,"\mPhilippine\M|\mFilipin[oa]s?\M",text,demonym
+PLW,"\mPalau\M",any,name
+PNG,"\mPapua New Guinea\M",any,name
+POL,"\mPoland\M",any,name
+POL,"\mPolish\M",text,demonym
+PRI,"\mPuerto Rico\M",any,name
+PRI,"\mPuerto Rican\M",text,demonym
+PRK,"\mNorth Korea\M|\mDemocratic People.s Republic of Korea\M|\mDPRK\M",any,name
+PRK,"\mNorth Korean\M",text,demonym
+PRT,"\mPortugal\M",any,name
+PRT,"\mPortuguese\M",text,demonym
+PRY,"\mParaguay\M",any,name
+PRY,"\mParaguayan\M",text,demonym
+PSE,"\mPalestine\M|\mGaza\M|\mWest Bank\M",any,name
+PSE,"\mPalestinian\M",text,demonym
+PYF,"\mFrench Polynesia\M|\mTahiti\M",any,name
+QAT,"\mQatar\M",any,name
+REU,"\mLa R[eé]union\M|\mR[eé]union Island\M|\mRéunion\M",any,name
+ROU,"\mRomania\M",any,name
+ROU,"\mRomanian\M",text,demonym
+RUS,"\mRussia\M|\mRussian Federation\M",any,name
+RUS,"\mRussian\M(?! Federation)",text,demonym
+RWA,"\mRwanda\M",any,name
+RWA,"\mRwandan\M",text,demonym
+SAU,"\mSaudi Arabia\M",any,name
+SAU,"\mSaudi\M(?! Arabia)",text,demonym
+SCG,"\mSerbia and Montenegro\M",any,name
+SDN,"(?<!South )\mSudan\M|\mDarfur\M",any,name
+SDN,"(?<!South )\mSudanese\M",text,demonym
+SEN,"\mSenegal\M",any,name
+SEN,"\mSenegalese\M",text,demonym
+SGP,"\mSingapore\M",any,name
+SGP,"\mSingaporean\M",text,demonym
+SHN,"\mSaint Helena\M|\mSt\.? Helena\M",any,name
+SLB,"\mSolomon Islands\M",any,name
+SLE,"\mSierra Leone\M",any,name
+SLE,"\mSierra Leonean\M",text,demonym
+SLV,"\mEl Salvador\M",any,name
+SLV,"\mSalvadorr?an\M",text,demonym
+SOM,"\mSomalia\M|\mSomaliland\M",any,name
+SOM,"\mSomali\M",text,demonym
+SPI,"\mCanary Islands\M|\mCanarias\M|\mLa Palma\M|\mTenerife\M|\mGran Canaria\M",any,name
+SRB,"\mSerbia\M(?! and Montenegro)",any,name
+SRB,"\mSerbian\M",text,demonym
+SSD,"\mSouth Sudan\M",any,name
+SSD,"\mSouth Sudanese\M",text,demonym
+STP,"\mS[aã]o Tom[eé]\M",any,name
+SUR,"\mSuriname\M",any,name
+SUR,"\mSurinamese\M",text,demonym
+SVK,"\mSlovakia\M",any,name
+SVK,"\mSlovak\M",text,demonym
+SVN,"\mSlovenia\M",any,name
+SVN,"\mSlovenian\M",text,demonym
+SWE,"\mSweden\M",any,name
+SWE,"\mSwedish\M",text,demonym
+SWZ,"\mEswatini\M|\mSwaziland\M",any,name
+SXM,"\mSint Maarten\M",any,name
+SYC,"\mSeychelles\M",any,name
+SYR,"\mSyria\M|\mSyrian Arab Republic\M",any,name
+SYR,"\mSyrian\M(?! Arab Republic)",text,demonym
+TCA,"\mTurks and Caicos\M",any,name
+TCD,"\mChad\M",any,name
+TCD,"\mChadian\M",text,demonym
+TGO,"\mTogo\M",any,name
+TGO,"\mTogolese\M",text,demonym
+THA,"\mThailand\M",any,name
+THA,"\mThai\M",text,demonym
+TJK,"\mTajikistan\M",any,name
+TJK,"\mTajik\M",text,demonym
+TKL,"\mTokelau\M",any,name
+TKM,"\mTurkmenistan\M",any,name
+TLS,"\mTimor-Leste\M|\mEast Timor\M",any,name
+TLS,"\mTimorese\M",text,demonym
+TON,"\mTonga\M",any,name
+TON,"\mTongan\M",text,demonym
+TTO,"\mTrinidad\M|\mTobago\M",any,name
+TUN,"\mTunisia\M",any,name
+TUN,"\mTunisian\M",text,demonym
+TUR,"\mTurkey\M|\mT[üu]rkiye\M",any,name
+TUR,"\mTurkish\M",text,demonym
+TUV,"\mTuvalu\M",any,name
+TWN,"\mTaiwan\M|(?<!People.s )\mRepublic of China\M",any,name
+TWN,"\mTaiwanese\M",text,demonym
+TZA,"\mTanzania\M|\mZanzibar\M",any,name
+TZA,"\mTanzanian\M",text,demonym
+UGA,"\mUganda\M",any,name
+UGA,"\mUgandan\M",text,demonym
+UKR,"\mUkraine\M",any,name
+UKR,"\mUkrainian\M",text,demonym
+URY,"\mUruguay\M",any,name
+URY,"\mUruguayan\M",text,demonym
+USA,"\mUnited States\M(?! Virgin)|(?<!Latin )(?<!Central )(?<!South )(?<!North )(?<!Middle )\mAmerica\M|\mNew England\M",any,name
+USA,"\mUSA\M|\mU\.S\.(A\.)?(?! Virgin)|\mUS\M(?!\$)(?! Virgin)",text,abbrev
+USA,"\mAlabama\M|\mAlaska\M|\mArizona\M|\mArkansas\M|\mCalifornia\M|\mColorado\M|\mConnecticut\M|\mDelaware\M|\mFlorida\M|\mHawaii\M|\mIdaho\M|\mIllinois\M|\mIndiana\M|\mIowa\M|\mKansas\M|\mKentucky\M|\mLouisiana\M|\mMaine\M|\mMaryland\M|\mMassachusetts\M|\mMichigan\M|\mMinnesota\M|\mMississippi\M|\mMissouri\M|\mMontana\M|\mNebraska\M|\mNevada\M|\mNew Hampshire\M|\mNew Jersey\M|\mNew Mexico\M|\mNew York\M|\mNorth Carolina\M|\mNorth Dakota\M|\mOhio\M|\mOklahoma\M|\mOregon\M|\mPennsylvania\M|\mRhode Island\M|\mSouth Carolina\M|\mSouth Dakota\M|\mTennessee\M|\mTexas\M|\mUtah\M|\mVermont\M|\mVirginia\M|\mWashington\M|\mWisconsin\M|\mWyoming\M|\mDistrict of Columbia\M",any,subnational
+USA,"\mNew Orleans\M|\mAtlanta\M|\mHouston\M|\mLos Angeles\M|\mSan Francisco\M|\mChicago\M|\mBoston\M|\mPhiladelphia\M|\mBaltimore\M|\mSeattle\M",any,subnational
+USA,"^Georgia$",mesh,subnational
+USA,"\m[A-Z]{2} \d{5}\M",affil,abbrev
+UZB,"\mUzbekistan\M",any,name
+UZB,"\mUzbek\M",text,demonym
+VCT,"\mSaint Vincent\M|\mSt\.? Vincent\M|\mGrenadines\M",any,name
+VEN,"\mVenezuela\M",any,name
+VEN,"\mVenezuelan\M",text,demonym
+VGB,"\mBritish Virgin Islands\M",any,name
+VIR,"(?<!British )\mVirgin Islands\M|\mSaint Croix\M|\mSt\.? Croix\M",any,name
+VNM,"\mVi[eê]t ?[Nn]am\M(?! [Vv]eterans?)(?! [Ww]ar)(?! [Cc]onflict)(?! [Ee]ra)",any,name
+VNM,"\mVietnamese\M",text,demonym
+VUT,"\mVanuatu\M",any,name
+WLF,"\mWallis and Futuna\M",any,name
+WSM,"(?<!American )\mSamoa\M",any,name
+WSM,"(?<!American )\mSamoan\M",text,demonym
+YEM,"\mYemen\M",any,name
+YEM,"\mYemeni\M",text,demonym
+ZAF,"\mSouth Africa\M",any,name
+ZAF,"\mSouth African\M",text,demonym
+ZMB,"\mZambia\M",any,name
+ZMB,"\mZambian\M",text,demonym
+ZWE,"\mZimbabwe\M",any,name
+ZWE,"\mZimbabwean\M",text,demonym
+USA,"USA\M",affil,abbrev
+ESP,"\mEspaña\M|\mMadrid\M|\mBarcelona\M|\mValencia\M",affil,name
+MEX,"\mMéxico\M",affil,name
+DEU,"\mDeutschland\M|\mBerlin\M|\mMünchen\M|\mMunich\M|\mHamburg\M",affil,name
+ITA,"\mItalia\M|\mRoma\M|\mRome\M|\mMilano\M|\mMilan\M",affil,name
+BRA,"\mBrasil\M|\mSão Paulo\M|\mRio de Janeiro\M",affil,name
+PER,"\mPerú\M",affil,name
+AUT,"\mÖsterreich\M|\mVienna\M|\mWien\M",affil,name
+CHE,"\mSchweiz\M|\mSuisse\M|\mZurich\M|\mZürich\M|\mGeneva\M|\mGenève\M",affil,name
+FRA,"\mParis\M|\mLyon\M|\mMarseille\M",affil,name
+POL,"\mPolska\M|\mWarsaw\M|\mWarszawa\M|\mKraków\M|\mKrakow\M",affil,name
+NLD,"\mNederland\M|\mAmsterdam\M|\mUtrecht\M|\mLeiden\M|\mRotterdam\M|\mNijmegen\M|\mGroningen\M",affil,name
+NOR,"\mOslo\M|\mBergen\M|\mTrondheim\M",affil,name
+SWE,"\mStockholm\M|\mUppsala\M|\mGothenburg\M|\mUmeå\M",affil,name
+DNK,"\mCopenhagen\M|\mAarhus\M",affil,name
+AUS,"\mMelbourne\M|\mSydney\M|\mBrisbane\M|\mAdelaide\M|\mCanberra\M",affil,name
+NZL,"\mAuckland\M|\mChristchurch\M|\mDunedin\M",affil,name
+CAN,"\mToronto\M|\mMontr[eé]al\M|\mVancouver\M|\mOttawa\M|\mCalgary\M|\mEdmonton\M|\mSherbrooke\M",affil,name
+JPN,"\mTokyo\M|\mSendai\M|\mFukushima\M|\mOsaka\M|\mKyoto\M|\mKobe\M|\mHiroshima\M|\mNagasaki\M|\mTohoku\M",affil,name
+CHN,"\mBeijing\M|\mShanghai\M|\mChengdu\M|\mWuhan\M|\mGuangzhou\M|\mSichuan\M",affil,name
+TWN,"\mTaipei\M|\mKaohsiung\M|\mTaichung\M|\mLinkou\M",affil,name
+KOR,"\mSeoul\M|\mDaegu\M|\mBusan\M",affil,name
+IRN,"\mTehran\M|\mShiraz\M|\mTabriz\M|\mMashhad\M|\mKerman\M",affil,name
+TUR,"\mIstanbul\M|\mAnkara\M|\mİstanbul\M|\mIzmir\M",affil,name
+NPL,"\mKathmandu\M",affil,name
+BGD,"\mDhaka\M",affil,name
+PAK,"\mKarachi\M|\mLahore\M|\mIslamabad\M|\mPeshawar\M",affil,name
+ISR,"\mTel ?Aviv\M|\mJerusalem\M|\mHaifa\M|\mBeer[- ]Sheva\M",affil,name
+PHL,"\mManila\M|\mQuezon City\M",affil,name
+IDN,"\mJakarta\M|\mYogyakarta\M|\mBanda Aceh\M",affil,name
+THA,"\mBangkok\M|\mChiang Mai\M",affil,name
+LKA,"\mColombo\M",affil,name
+IND,"\mNew Delhi\M|\mMumbai\M|\mChennai\M|\mBangalore\M|\mBengaluru\M|\mKolkata\M",affil,name
