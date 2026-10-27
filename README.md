@@ -1,12 +1,36 @@
-# Бедствия и наука: где бедствий много, а исследований мало
+# Disasters and Research Attention
 
-База PostgreSQL, которая соединяет статистику бедствий **EM-DAT** с научными публикациями **PubMed** о психическом здоровье и психологической помощи пострадавшим, и интерактивная таблица поверх неё.
+**Where are disasters frequent but research on mental health and psychological help scarce — and the other way round?**
+
+This project links the [EM-DAT](https://www.emdat.be) international disaster database with PubMed literature on disaster mental health and psychosocial support, country by country. Everything lives in PostgreSQL: loading, classification rules, and the gap analysis itself (`gap_analysis()`).
+
+**Explore:** interactive map, charts and country profiles — **[live page](https://irinavasdm.github.io/disasters-science/)**.
+
+**Data.** 9,387 natural disasters in 217 countries (EM-DAT archive, 2000–2024) and 14,301 PubMed records (2000–2025), of which 9,416 are included. The country studied is taken from MeSH geographic headings (80% of links), titles, or abstracts. Author countries come from affiliations.
+
+**Method.** For each country, the expected number of papers is estimated from its disaster burden with a log-linear regression across all countries. The gap is actual vs. expected papers. Findings are checked in 11 robustness variants: alternative burden measures, country-assignment rules, publication lags, periods, and a Poisson model.
+
+**Key findings**
+- Disaster burden explains only 42% of cross-country variation in research volume. Five countries (USA, Japan, China, Türkiye, Australia) account for 58% of papers but 18% of disasters.
+- 67 countries have less than half the expected research; for 47 of them this holds in nearly all robustness variants (Sub-Saharan Africa, Latin America, Central Asia, Eastern Europe).
+- Earthquakes get 405 papers per 100 events, floods 17. Extreme temperatures cause 23% of disaster deaths but yield 0.5 papers per 1,000 deaths.
+- Only 39% of papers on under-researched countries have a local author. For Haiti it is 15%.
+
+**Reproduce:** `createdb disasters_science && psql -d disasters_science -f sql/build_all.sql` (details in the Russian section below). Raw EM-DAT and PubMed files are not included in the repository: `scripts/01_emdat_to_csv.py` converts the EM-DAT archive (download it from [UCLouvain Dataverse](https://doi.org/10.14428/DVN/I0LTPH)) and `scripts/02_fetch_pubmed.py` downloads PubMed records.
+
+**Licences.** Code: [MIT](LICENSE). EM-DAT data © CRED/UCLouvain, CC BY-NC-ND 4.0 (Delforge et al., 2025, doi:[10.1016/j.ijdrr.2025.105509](https://doi.org/10.1016/j.ijdrr.2025.105509)). PubMed metadata: U.S. National Library of Medicine. Map geometry: Natural Earth.
+
+---
+
+# Бедствия и научное внимание
+
+База PostgreSQL, которая соединяет статистику бедствий **EM-DAT** с научными публикациями **PubMed** о психическом здоровье и психологической помощи пострадавшим, и интерактивная страница поверх неё.
 
 Для каждой страны считается, сколько статей «ожидается» при её числе бедствий (по всем странам мира), и сравнивается с тем, сколько их есть на самом деле.
 
-**Открыть страницу «Бедствия и научное внимание»:** `аналитика_бедствия_наука.html` — двойной щелчок, откроется в браузере (нужен интернет для шрифта и библиотеки карты). Веб-версия: https://claude.ai/artifact/WYmP9ywJNzfkSuh28yMAiM
+**Открыть страницу «Бедствия и научное внимание»:** https://irinavasdm.github.io/disasters-science/ или локально `аналитика_бедствия_наука.html` — двойной щелчок, откроется в браузере (нужен интернет для шрифта и библиотеки карты).
 
-**Аналитический отчёт** (структура научной статьи: методы, результаты, проверки устойчивости, литература): https://claude.ai/artifact/PTNhE6WCHrSvrUHL1p8o3u
+**Аналитический отчёт** (структура научной статьи: методы, результаты, проверки устойчивости, литература) готовится к публикации; все его числа воспроизводятся скриптом `sql/08_report_numbers.sql`, вывод — в `results/report_numbers.txt`.
 
 ## Что видно уже сейчас
 
