@@ -250,6 +250,13 @@ details.method summary { cursor: pointer; font-weight: 600; }
         <button type="button" id="f-res-help" aria-pressed="false">о помощи</button>
       </div>
     </div>
+    <div class="field">
+      <span class="lbl">Ожидаемое учитывает</span>
+      <div class="seg" role="group" aria-label="Что учитывает ожидаемое число работ">
+        <button type="button" id="f-mod-base" aria-pressed="true">бедствия</button>
+        <button type="button" id="f-mod-adj" aria-pressed="false">бедствия и науку</button>
+      </div>
+    </div>
     <div class="field"><label for="f-region">Регион</label><select id="f-region"><option value="">все регионы</option></select></div>
     <div class="field"><label for="f-q">Страна</label><input type="search" id="f-q" placeholder="имя или ISO" autocomplete="off"></div>
   </section>
@@ -285,7 +292,7 @@ details.method summary { cursor: pointer; font-weight: 600; }
   <div class="grid2">
     <section class="card" id="scatter" aria-labelledby="scatter-title">
       <div class="card-head"><h2 id="scatter-title">Нагрузка и наука по странам</h2></div>
-      <p class="sub">Точка — страна. Линия — сколько работ в среднем бывает у стран с такой нагрузкой, полоса — от половины до двойного значения. Обе оси логарифмические.</p>
+      <p class="sub" id="scatter-sub"></p>
       <div class="legend" aria-hidden="true">
         <span><i style="background:var(--deficit)"></i>Дефицит</span>
         <span><i style="background:var(--neutral)"></i>В пределах ожидаемого</span>
@@ -361,13 +368,15 @@ details.method summary { cursor: pointer; font-weight: 600; }
       <p><strong>Работы</strong> — PubMed, выгрузка <span id="m-pubmed"></span>: 2000–2025 гг., есть и тема бедствия, и тема психики (психическое здоровье, ПТСР, депрессия, тревога, психологическая первая помощь, психосоциальная поддержка, психотерапия). Исправления, комментарии, письма и редакционные статьи не учитываются. Работы о COVID-19, терактах и войнах учитываются, только если в них назван конкретный тип бедствия. Всего <span id="m-pubs"></span>.</p>
       <p><strong>Страна работы</strong> — по географическим рубрикам MeSH (их ставят индексаторы NLM), иначе по названию, иначе по аннотации. <strong>Местный автор</strong> — хотя бы один автор работает в этой стране. <strong>«О помощи»</strong> — работы о психологической первой помощи, психосоциальной поддержке, кризисной интервенции, консультировании, психотерапии, службах и программах.</p>
       <p><strong>Ожидаемое число работ</strong> — регрессия ln(1 + работы) на ln(1 + нагрузка) по всем странам с бедствиями за период. Разрыв = (работы + 1) / (ожидаемое + 1); работы считаются за те же годы плюс один. Дефицит — меньше половины ожидаемого, «больше ожидаемого» — вдвое больше и выше, «мало данных» — ожидается меньше одной работы и есть не больше одной.</p>
+      <p><strong>С поправкой на науку</strong> (переключатель «Ожидаемое учитывает: бедствия и науку») в регрессию добавлен ln(1 + научный потенциал): среднегодовое число научных и технических статей страны по всем наукам за выбранные годы (Всемирный банк, показатель IP.JRN.ARTC.SC по данным NSF; данные доступны по 2023 г.). Дефицит здесь — работ меньше половины ожидаемого у стран с похожей нагрузкой <em>и</em> похожей наукой, то есть недостаток внимания именно к бедствиям. Если наука в стране слабая вообще, эта модель дефицита не покажет: его видно в базовой. Для Тайваня, Гонконга и ряда территорий данных Всемирного банка нет.</p>
       <ul>
-        <li>PubMed почти не видит национальные журналы, в том числе русскоязычные: дефицит у стран с сильной местной наукой может быть завышен.</li>
+        <li>PubMed почти не видит национальные журналы, в том числе русскоязычные: дефицит у стран с сильной местной наукой может быть завышен. С поправкой на науку это особенно заметно: дефицит смещается в Восточную Европу и Латинскую Америку.</li>
+        <li>У стран с единичными бедствиями ожидаемое число работ в модели с поправкой задаёт почти только научный потенциал — их дефицит слабый сигнал.</li>
         <li>Страна по тексту определяется шаблонами и иногда ошибается; правила лежат в таблицах <code>country_patterns</code> и <code>classification_rules</code>.</li>
         <li>EM-DAT лучше учитывает крупные и международно заметные события.</li>
       </ul>
-      <p>Те же цифры в базе PostgreSQL: <code>SELECT * FROM gap_analysis(2000, 2024, 'natural', 'events', 'all');</code></p>
-      <p>Данные EM-DAT распространяются по лицензии CC BY-NC-ND 4.0 (Delforge et al., 2025, doi:10.1016/j.ijdrr.2025.105509); контуры стран — Natural Earth.</p>
+      <p>Те же цифры в базе PostgreSQL: <code>SELECT * FROM gap_analysis(2000, 2024, 'natural', 'events', 'all');</code>, с поправкой на науку — <code>SELECT * FROM gap_analysis_adj();</code></p>
+      <p>Данные EM-DAT распространяются по лицензии CC BY-NC-ND 4.0 (Delforge et al., 2025, doi:10.1016/j.ijdrr.2025.105509); показатели науки — Всемирный банк, World Development Indicators, CC BY 4.0; контуры стран — Natural Earth.</p>
     </div>
   </details>
   <div class="tip" id="tip" hidden></div>
@@ -396,7 +405,8 @@ details.method summary { cursor: pointer; font-weight: 600; }
     deficit: { label: "Дефицит исследований", short: "Дефицит", color: "var(--deficit)" },
     normal: { label: "В пределах ожидаемого", short: "Как ожидалось", color: "var(--neutral)" },
     surplus: { label: "Изучено больше ожидаемого", short: "Больше ожидаемого", color: "var(--surplus)" },
-    few: { label: "Мало данных", short: "Мало данных", color: "var(--neutral)", hollow: true }
+    few: { label: "Мало данных", short: "Мало данных", color: "var(--neutral)", hollow: true },
+    nocap: { label: "Нет данных о науке", short: "Нет данных о науке", color: "var(--neutral)", hollow: true }
   };
   var HZ_GEN = {
     natural: "природных бедствий", all: "природных и техногенных бедствий", earthquake: "землетрясений и цунами",
@@ -418,9 +428,9 @@ details.method summary { cursor: pointer; font-weight: 600; }
   };
   var seq = function (t) { return d3.interpolateRgb(COL.seqLo, COL.seqHi)(Math.max(0, Math.min(1, t))); };
 
-  var S = { from: 2000, to: M.year_max, hazard: "natural", burden: "events", research: "all", region: "", q: "", cat: "",
+  var S = { from: 2000, to: M.year_max, hazard: "natural", burden: "events", research: "all", model: "base", region: "", q: "", cat: "",
             sortKey: "ratio", sortDir: 1, open: -1, shown: 25, metric: "gap", flow: "region" };
-  var R = [], RBY = {}, FIT = { a: 0, b: 0 };
+  var R = [], RBY = {}, FIT = { a: 0, b: 0, b2: 0 };
 
   function hazardOk(f, mask) {
     if (f === "all") return mask !== 0;
@@ -441,6 +451,13 @@ details.method summary { cursor: pointer; font-weight: 600; }
   function big(v) { return v >= 10000 ? cf.format(v) : nf.format(Math.round(v)); }
   function burdenFmt(v) { return S.burden === "events" ? nf.format(v) : big(v); }
   function dotStyle(e, cat) { if (CAT[cat].hollow) { e.style.background = "transparent"; e.style.boxShadow = "inset 0 0 0 1.5px " + CAT[cat].color; } else e.style.background = CAT[cat].color; }
+  function similar() { return S.model === "adj" ? "чем у стран с похожей нагрузкой и похожим научным потенциалом" : "чем у стран с похожей нагрузкой"; }
+  function tipRows(r) {
+    var rows = [[BURDEN[S.burden].short, burdenFmt(r.burden)], [S.research === "help" ? "Работ о помощи" : "Работ", nf.format(r.research)]];
+    if (S.model === "adj") rows.push(["Научных статей в год", r.capacity == null ? "нет данных" : big(r.capacity)]);
+    rows.push(["Ожидалось", r.expected == null ? "—" : nf1.format(r.expected)], ["Разрыв", r.ratio == null ? "—" : ratioShort(r.ratio)]);
+    return rows;
+  }
 
   // ---------- общая подсказка ----------
   var tip = document.getElementById("tip");
@@ -457,7 +474,19 @@ details.method summary { cursor: pointer; font-weight: 600; }
   }
   function hideTip() { tip.hidden = true; }
 
-  // ---------- расчёт: то же, что gap_analysis() в PostgreSQL ----------
+  // Научный потенциал: среднегодовое число научных статей за годы периода (как в capacity_panel());
+  // если период целиком позже последних данных — последнее известное значение
+  function capacityMeans() {
+    var sum = {}, cnt = {}, last = {}, out = {};
+    (D.cap || []).forEach(function (k) {   // отсортировано по стране и году
+      if (k[1] >= S.from && k[1] <= S.to) { sum[k[0]] = (sum[k[0]] || 0) + k[2]; cnt[k[0]] = (cnt[k[0]] || 0) + 1; }
+      if (k[1] <= S.to) last[k[0]] = k[2];
+    });
+    Object.keys(last).forEach(function (ci) { out[ci] = cnt[ci] ? sum[ci] / cnt[ci] : last[ci]; });
+    return out;
+  }
+
+  // ---------- расчёт: то же, что gap_analysis() и gap_analysis_adj() в PostgreSQL ----------
   function compute() {
     var agg = {};
     D.dis.forEach(function (d) {
@@ -473,20 +502,34 @@ details.method summary { cursor: pointer; font-weight: 600; }
       });
     });
     var rows = Object.keys(agg).map(function (k) { return agg[k]; });
-    var n = rows.length, sx = 0, sy = 0;
+    var adj = S.model === "adj", capBy = adj ? capacityMeans() : {};
     rows.forEach(function (r) {
       r.burden = r[S.burden]; r.research = S.research === "help" ? r.help : r.papers;
-      r.x = Math.log(1 + r.burden); r.y = Math.log(1 + r.research); sx += r.x; sy += r.y;
+      r.x = Math.log(1 + r.burden); r.y = Math.log(1 + r.research);
+      r.capacity = capBy[r.ci] != null ? capBy[r.ci] : null;
+      r.x2 = r.capacity == null ? 0 : Math.log(1 + r.capacity);
     });
-    var mx = sx / n, my = sy / n, sxx = 0, sxy = 0;
-    rows.forEach(function (r) { sxx += (r.x - mx) * (r.x - mx); sxy += (r.x - mx) * (r.y - my); });
-    var b = sxx > 0 ? sxy / sxx : 0, a = my - b * mx;
-    FIT = { a: a, b: b };
+    // МНК: ln(1 + работы) = a + b·ln(1 + нагрузка) [+ b2·ln(1 + потенциал)] — по странам, где известен потенциал
+    var fit = adj ? rows.filter(function (r) { return r.capacity != null; }) : rows, n = fit.length;
+    var mx = 0, m2 = 0, my = 0; fit.forEach(function (r) { mx += r.x / n; m2 += r.x2 / n; my += r.y / n; });
+    var s11 = 0, s22 = 0, s12 = 0, s1y = 0, s2y = 0;
+    fit.forEach(function (r) {
+      var dx = r.x - mx, d2 = r.x2 - m2, dy = r.y - my;
+      s11 += dx * dx; s22 += d2 * d2; s12 += dx * d2; s1y += dx * dy; s2y += d2 * dy;
+    });
+    var det = s11 * s22 - s12 * s12, b, b2;
+    if (adj && det > 0) { b = (s22 * s1y - s12 * s2y) / det; b2 = (s11 * s2y - s12 * s1y) / det; }
+    else { b = s11 > 0 ? s1y / s11 : 0; b2 = 0; }
+    var a = my - b * mx - b2 * m2;
+    FIT = { a: a, b: b, b2: b2 };
     RBY = {};
     rows.forEach(function (r) {
-      r.expected = Math.max(Math.exp(a + b * r.x) - 1, 0);
-      r.ratio = (r.research + 1) / (r.expected + 1);
-      r.cat = r.expected < 1 && r.research <= 1 ? "few" : r.ratio <= 0.5 ? "deficit" : (r.ratio >= 2 ? "surplus" : "normal");
+      if (adj && r.capacity == null) { r.expected = null; r.ratio = null; r.cat = "nocap"; }
+      else {
+        r.expected = Math.max(Math.exp(a + b * r.x + b2 * r.x2) - 1, 0);
+        r.ratio = (r.research + 1) / (r.expected + 1);
+        r.cat = r.expected < 1 && r.research <= 1 ? "few" : r.ratio <= 0.5 ? "deficit" : (r.ratio >= 2 ? "surplus" : "normal");
+      }
       r.iso = C[r.ci][0]; r.name = C[r.ci][1]; r.region = C[r.ci][2];
       r.localShare = r.papers ? r.local / r.papers : null;
       RBY[r.iso] = r;
@@ -519,7 +562,8 @@ details.method summary { cursor: pointer; font-weight: 600; }
     var worst = base.filter(function (r) { return r.cat === "deficit"; }).sort(function (x, y) { return y.burden - x.burden; }).slice(0, 3).map(function (r) { return r.name; });
     var lede = document.getElementById("lede"); lede.textContent = "";
     lede.appendChild(document.createTextNode("Сравниваем " + what + " в стране с числом научных работ " +
-      (S.research === "help" ? "о психологической помощи пострадавшим" : "о психическом здоровье и психологической помощи пострадавшим") + ". "));
+      (S.research === "help" ? "о психологической помощи пострадавшим" : "о психическом здоровье и психологической помощи пострадавшим") + ". " +
+      (S.model === "adj" ? "Ожидаемое число работ учитывает и научный потенциал страны: дефицит здесь — недостаток внимания именно к бедствиям. " : "")));
     if (worst.length) { lede.appendChild(document.createTextNode("Самая большая нагрузка при дефиците исследований: ")); lede.appendChild(el("strong", null, worst.join(", "))); lede.appendChild(document.createTextNode(".")); }
   }
 
@@ -547,13 +591,14 @@ details.method summary { cursor: pointer; font-weight: 600; }
   function mapFill(f) {
     var r = RBY[f.id];
     if (!r) return COL.nodata;
-    if (S.metric === "gap") return r.cat === "few" ? "#e9ecee" : diverge(Math.log2(r.ratio) / 3);
+    if (S.metric === "gap") return r.cat === "few" || r.cat === "nocap" ? "#e9ecee" : diverge(Math.log2(r.ratio) / 3);
     if (S.metric === "per100") { if (!r.research) return COL.zero; return seq(Math.log10(1 + 100 * r.research / r.events) / Math.log10(1 + 600)); }
     if (r.papers < 3) return COL.nodata;
     return seq(r.localShare);
   }
   function renderMap() {
-    document.getElementById("map-sub").textContent = MAP_SUB[S.metric];
+    document.getElementById("map-sub").textContent = S.metric === "gap"
+      ? "Цвет — во сколько раз работ меньше (красный) или больше (синий), " + similar() + "." : MAP_SUB[S.metric];
     var selIso = S.open >= 0 ? C[S.open][0] : null;
     mapPaths.attr("fill", mapFill)
       .attr("opacity", function (f) { var r = RBY[f.id]; return S.region && (!r || r.region !== S.region) ? 0.3 : 1; })
@@ -561,8 +606,7 @@ details.method summary { cursor: pointer; font-weight: 600; }
       .on("mousemove", function (ev, f) {
         var r = RBY[f.id], name = r ? r.name : (f.properties && f.properties.name) || f.id;
         if (!r) { showTip(ev, name, [], "Нет бедствий выбранного типа за период"); return; }
-        showTip(ev, name, [[BURDEN[S.burden].short, burdenFmt(r.burden)], [S.research === "help" ? "Работ о помощи" : "Работ", nf.format(r.research)],
-          ["Ожидалось", nf1.format(r.expected)], ["Разрыв", ratioShort(r.ratio)], ["Местный автор", r.papers ? pct(r.localShare) : "—"]], CAT[r.cat].label);
+        showTip(ev, name, tipRows(r).concat([["Местный автор", r.papers ? pct(r.localShare) : "—"]]), CAT[r.cat].label);
       })
       .on("mouseleave", hideTip)
       .on("click", function (ev, f) { var r = RBY[f.id]; if (r) openCountry(r.ci, true); });
@@ -585,7 +629,7 @@ details.method summary { cursor: pointer; font-weight: 600; }
     box.appendChild(s);
     function sw(color, label, ring) { var sp = el("span"), i = el("i", "sq"); i.style.background = color; if (ring) i.style.boxShadow = "inset 0 0 0 1px #c8d0d5"; sp.appendChild(i); sp.appendChild(document.createTextNode(label)); sp.style.display = "inline-flex"; sp.style.gap = "6px"; sp.style.alignItems = "center"; box.appendChild(sp); }
     if (S.metric === "per100") sw(COL.zero, "бедствия есть, работ нет");
-    if (S.metric === "gap") sw("#e9ecee", "мало данных", true);
+    if (S.metric === "gap") sw("#e9ecee", S.model === "adj" ? "мало данных или нет данных о науке" : "мало данных", true);
     sw(COL.nodata, S.metric === "local" ? "меньше 3 работ или нет бедствий" : "нет бедствий выбранного типа", true);
   }
   document.querySelectorAll("[data-metric]").forEach(function (b) {
@@ -602,8 +646,14 @@ details.method summary { cursor: pointer; font-weight: 600; }
   function tickLabel(v) { return v >= 1000 ? cf.format(v) : String(v); }
   function narrow(e) { return e.clientWidth > 0 && e.clientWidth < 520; }
   function renderScatter(base) {
+    // базовая модель: нагрузка → работы с линией регрессии; с поправкой: ожидаемое → работы, линия — диагональ
+    var adj = S.model === "adj", PTS = R.filter(function (r) { return r.expected != null; });
+    var sx = function (r) { return adj ? Math.log(1 + r.expected) : r.x; };
+    document.getElementById("scatter-sub").textContent = adj
+      ? "Точка — страна. По горизонтали — сколько работ ожидается с учётом нагрузки и научного потенциала, по вертикали — сколько есть. На линии работ столько, сколько ожидается; полоса — от половины до двойного значения. Обе оси логарифмические."
+      : "Точка — страна. Линия — сколько работ в среднем бывает у стран с такой нагрузкой, полоса — от половины до двойного значения. Обе оси логарифмические.";
     var W = narrow(scatterEl) ? 420 : 620, H = narrow(scatterEl) ? 340 : 420, m = { l: 40, r: 12, t: 26, b: 40 }, iw = W - m.l - m.r, ih = H - m.t - m.b;
-    var xmax = 0, ymax = 0; R.forEach(function (r) { xmax = Math.max(xmax, r.x); ymax = Math.max(ymax, r.y); });
+    var xmax = 0, ymax = 0; PTS.forEach(function (r) { xmax = Math.max(xmax, sx(r)); ymax = Math.max(ymax, r.y); });
     xmax = Math.max(xmax, Math.log(11)) * 1.04; ymax = Math.max(ymax, Math.log(11)) * 1.06;
     var X = function (v) { return m.l + v / xmax * iw; }, Y = function (v) { return m.t + ih - v / ymax * ih; };
     scatterEl.textContent = "";
@@ -612,28 +662,28 @@ details.method summary { cursor: pointer; font-weight: 600; }
     ticksLog(ymax).forEach(function (v) { var y = Y(Math.log(1 + v)); sv("line", { x1: m.l, x2: m.l + iw, y1: y, y2: y, stroke: "#e3e8eb" }, svg); txt(svg, { x: m.l - 6, y: y + 4, "text-anchor": "end", "font-size": 11, fill: "#7b868c" }, tickLabel(v)); });
     ticksLog(xmax).forEach(function (v) { var x = X(Math.log(1 + v)); sv("line", { x1: x, x2: x, y1: m.t, y2: m.t + ih, stroke: "#e3e8eb" }, svg); txt(svg, { x: x, y: m.t + ih + 16, "text-anchor": "middle", "font-size": 11, fill: "#7b868c" }, tickLabel(v)); });
     sv("line", { x1: m.l, x2: m.l + iw, y1: m.t + ih, y2: m.t + ih, stroke: "#c8d0d5" }, svg);
-    txt(svg, { x: m.l + iw, y: H - 4, "text-anchor": "end", "font-size": 12, fill: "#48535a" }, BURDEN[S.burden].short + " →");
+    txt(svg, { x: m.l + iw, y: H - 4, "text-anchor": "end", "font-size": 12, fill: "#48535a" }, (adj ? "Ожидалось с учётом науки" : BURDEN[S.burden].short) + " →");
     txt(svg, { x: m.l, y: 14, "font-size": 12, fill: "#48535a" }, "↑ " + (S.research === "help" ? "Работ о помощи" : "Работ"));
     var LN2 = Math.log(2), up = [], lo = [], mid = [];
-    for (var i = 0; i <= 60; i++) { var xv = xmax * i / 60, e = Math.max(FIT.a + FIT.b * xv, 0); mid.push(X(xv) + "," + Y(e)); up.push(X(xv) + "," + Y(e + LN2)); lo.push(X(xv) + "," + Y(Math.max(e - LN2, 0))); }
+    for (var i = 0; i <= 60; i++) { var xv = xmax * i / 60, e = adj ? xv : Math.max(FIT.a + FIT.b * xv, 0); mid.push(X(xv) + "," + Y(e)); up.push(X(xv) + "," + Y(e + LN2)); lo.push(X(xv) + "," + Y(Math.max(e - LN2, 0))); }
     var cg = sv("g", { "clip-path": "url(#sc-clip)" }, svg);
     sv("polygon", { points: up.concat(lo.reverse()).join(" "), fill: "rgba(20,26,29,0.05)" }, cg);
     sv("polyline", { points: mid.join(" "), fill: "none", stroke: "#48535a", "stroke-width": 2 }, cg);
     var vis = {}; base.forEach(function (r) { vis[r.ci] = true; });
     var layer = { few: 0, normal: 1, surplus: 2, deficit: 2 }, pts = [];
-    R.slice().sort(function (p, q) { return layer[p.cat] - layer[q.cat]; }).forEach(function (r) {
-      var cx = X(r.x), cy = Y(r.y), on = !!vis[r.ci] && (!S.cat || S.cat === r.cat), hollow = CAT[r.cat].hollow, sel = r.ci === S.open;
+    PTS.slice().sort(function (p, q) { return layer[p.cat] - layer[q.cat]; }).forEach(function (r) {
+      var cx = X(sx(r)), cy = Y(r.y), on = !!vis[r.ci] && (!S.cat || S.cat === r.cat), hollow = CAT[r.cat].hollow, sel = r.ci === S.open;
       sv("circle", { cx: cx, cy: cy, r: sel ? 7 : (hollow ? 3.5 : 4.5), fill: hollow ? "#ffffff" : CAT[r.cat].color.replace("var(--deficit)", COL.deficit).replace("var(--surplus)", COL.surplus).replace("var(--neutral)", COL.neutral),
         stroke: sel ? "#141a1d" : (hollow ? COL.neutral : "#ffffff"), "stroke-width": hollow ? 1.5 : 2, "class": "pt", opacity: on ? 1 : 0.15 }, svg);
       if (on) pts.push({ r: r, x: cx, y: cy });
     });
     var boxes = pts.map(function (p) { return [p.x - 5, p.y - 5, p.x + 5, p.y + 5]; });
-    var cand = base.filter(function (r) { return r.cat === "deficit"; }).sort(function (p, q) { return q.x - p.x; }).slice(0, 5)
+    var cand = base.filter(function (r) { return r.cat === "deficit"; }).sort(function (p, q) { return sx(q) - sx(p); }).slice(0, 5)
       .concat(base.filter(function (r) { return r.cat === "surplus"; }).sort(function (p, q) { return q.y - p.y; }).slice(0, 4));
-    var sel = R.filter(function (r) { return r.ci === S.open; }); cand = sel.concat(cand.filter(function (r) { return r.ci !== S.open; }));
+    var sel = PTS.filter(function (r) { return r.ci === S.open; }); cand = sel.concat(cand.filter(function (r) { return r.ci !== S.open; }));
     cand.forEach(function (r) {
       if (S.cat && S.cat !== r.cat && r.ci !== S.open) return;
-      var cx = X(r.x), cy = Y(r.y), w = r.name.length * 6.6, h = 14;
+      var cx = X(sx(r)), cy = Y(r.y), w = r.name.length * 6.6, h = 14;
       [[cx + 8, cy + 4, "start"], [cx - 8, cy + 4, "end"], [cx + 6, cy - 9, "start"], [cx + 6, cy + 17, "start"]].some(function (t) {
         var x0 = t[2] === "start" ? t[0] : t[0] - w, b = [x0, t[1] - h + 3, x0 + w, t[1] + 3];
         if (b[0] < m.l || b[2] > m.l + iw || b[1] < m.t) return false;
@@ -648,7 +698,7 @@ details.method summary { cursor: pointer; font-weight: 600; }
     svg.addEventListener("pointermove", function (ev) {
       var p = nearest(ev); if (!p) { hideTip(); svg.style.cursor = ""; return; }
       svg.style.cursor = "pointer"; var r = p.r;
-      showTip(ev, r.name, [[BURDEN[S.burden].short, burdenFmt(r.burden)], [S.research === "help" ? "Работ о помощи" : "Работ", nf.format(r.research)], ["Ожидалось", nf1.format(r.expected)], ["Разрыв", ratioShort(r.ratio)]], CAT[r.cat].label);
+      showTip(ev, r.name, tipRows(r), CAT[r.cat].label);
     });
     svg.addEventListener("pointerleave", hideTip);
     svg.addEventListener("click", function (ev) { var p = nearest(ev); if (p) openCountry(p.r.ci, true); });
@@ -841,9 +891,14 @@ details.method summary { cursor: pointer; font-weight: 600; }
     { key: "help", label: "О помощи" }, { key: "localShare", label: "Есть местный автор" }, { key: "expected", label: "Ожидалось" },
     { key: "ratio", label: "Разрыв", sortDir: 1 }, { key: "cat", label: "Категория" }
   ];
+  // в модели с поправкой перед «Ожидалось» появляется научный потенциал страны
+  function cols() {
+    if (S.model !== "adj") return COLS;
+    var c = COLS.slice(); c.splice(c.length - 3, 0, { key: "capacity", label: "Научных статей в год" }); return c;
+  }
   function renderHead() {
     var tr = document.getElementById("thead-row"); tr.textContent = "";
-    COLS.forEach(function (c) {
+    cols().forEach(function (c) {
       var th = el("th"); th.scope = "col";
       if (c.key === S.sortKey) { th.className = "sorted" + (S.sortDir > 0 ? " asc" : ""); th.setAttribute("aria-sort", S.sortDir > 0 ? "ascending" : "descending"); }
       if (c.burden && c.burden === S.burden) th.classList.add("is-burden");
@@ -852,11 +907,13 @@ details.method summary { cursor: pointer; font-weight: 600; }
       th.appendChild(bt); tr.appendChild(th);
     });
   }
-  function sortVal(r, k) { if (k === "cat") return { deficit: 0, normal: 1, surplus: 2, few: 3 }[r.cat]; if (k === "localShare") return r.localShare == null ? -1 : r.localShare; return r[k]; }
+  function sortVal(r, k) { if (k === "cat") return { deficit: 0, normal: 1, surplus: 2, few: 3, nocap: 4 }[r.cat]; if (k === "localShare") return r.localShare == null ? -1 : r.localShare; return r[k]; }
   function renderChips(base) {
     var box = document.getElementById("chips"); box.textContent = "";
-    var counts = { "": base.length, deficit: 0, normal: 0, surplus: 0, few: 0 }; base.forEach(function (r) { counts[r.cat]++; });
-    [["", "Все"], ["deficit", CAT.deficit.label], ["normal", CAT.normal.label], ["surplus", CAT.surplus.label], ["few", CAT.few.label]].forEach(function (c) {
+    var counts = { "": base.length, deficit: 0, normal: 0, surplus: 0, few: 0, nocap: 0 }; base.forEach(function (r) { counts[r.cat]++; });
+    var list = [["", "Все"], ["deficit", CAT.deficit.label], ["normal", CAT.normal.label], ["surplus", CAT.surplus.label], ["few", CAT.few.label]];
+    if (S.model === "adj") list.push(["nocap", CAT.nocap.label]);
+    list.forEach(function (c) {
       var b = el("button", "chip"); b.type = "button"; b.setAttribute("aria-pressed", String(S.cat === c[0]));
       if (c[0]) { var i = el("i"); dotStyle(i, c[0]); b.appendChild(i); }
       b.appendChild(document.createTextNode(c[1])); b.appendChild(el("span", "n", nf.format(counts[c[0]])));
@@ -864,16 +921,21 @@ details.method summary { cursor: pointer; font-weight: 600; }
     });
   }
   function gapCell(r) {
+    if (r.ratio == null) return el("span", "muted", "—");
     var wrap = el("span", "gap"), bar = el("span", "gapbar"), s = el("span"), len = Math.min(Math.abs(Math.log(r.ratio)) / Math.log(8), 1) * 36;
     s.style.width = Math.max(len, 1) + "px"; s.style.left = r.ratio < 1 ? (36 - len) + "px" : "36px"; s.style.background = CAT[r.cat].color;
     bar.appendChild(s); wrap.appendChild(bar); wrap.appendChild(el("span", null, ratioShort(r.ratio)));
-    wrap.title = "Работ " + ratioText(r.ratio) + ", чем у стран с похожей нагрузкой"; return wrap;
+    wrap.title = "Работ " + ratioText(r.ratio) + ", " + similar(); return wrap;
   }
   function renderTable(base) {
     var rows = base.filter(function (r) { return !S.cat || r.cat === S.cat; }), k = S.sortKey, dir = S.sortDir;
-    rows.sort(function (p, q) { var a = sortVal(p, k), b = sortVal(q, k); if (typeof a === "string") return dir * a.localeCompare(b, "ru"); return dir * (a - b) || q.events - p.events; });
+    rows.sort(function (p, q) {
+      var a = sortVal(p, k), b = sortVal(q, k);
+      if (a == null || b == null) return (a == null) - (b == null) || q.events - p.events;   // страны без значения — в конце
+      if (typeof a === "string") return dir * a.localeCompare(b, "ru"); return dir * (a - b) || q.events - p.events;
+    });
     var tb = document.getElementById("tbody"); tb.textContent = "";
-    if (!rows.length) { var tr0 = el("tr"), td0 = el("td", "empty", "Нет стран под выбранные фильтры. Расширьте период или снимите фильтр региона."); td0.colSpan = COLS.length; tr0.appendChild(td0); tb.appendChild(tr0); return; }
+    if (!rows.length) { var tr0 = el("tr"), td0 = el("td", "empty", "Нет стран под выбранные фильтры. Расширьте период или снимите фильтр региона."); td0.colSpan = cols().length; tr0.appendChild(td0); tb.appendChild(tr0); return; }
     rows.forEach(function (r) {
       var tr = el("tr", "row" + (r.ci === S.open ? " open" : "")); tr.tabIndex = 0; tr.setAttribute("aria-expanded", String(r.ci === S.open)); tr.setAttribute("data-ci", r.ci);
       var td = el("td"), nm = el("span", "cname"); nm.appendChild(el("b", null, r.name));
@@ -883,7 +945,8 @@ details.method summary { cursor: pointer; font-weight: 600; }
       tr.appendChild(el("td", null, r.damage ? big(r.damage) : "—"));
       tr.appendChild(el("td", null, nf.format(r.papers))); tr.appendChild(el("td", null, nf.format(r.help)));
       tr.appendChild(el("td", r.localShare == null ? "muted" : null, r.localShare == null ? "—" : pct(r.localShare)));
-      tr.appendChild(el("td", null, nf1.format(r.expected)));
+      if (S.model === "adj") tr.appendChild(el("td", r.capacity == null ? "muted" : null, r.capacity == null ? "—" : big(r.capacity)));
+      tr.appendChild(el("td", r.expected == null ? "muted" : null, r.expected == null ? "—" : nf1.format(r.expected)));
       var tg = el("td"); tg.appendChild(gapCell(r)); tr.appendChild(tg);
       var tc = el("td"), pill = el("span", "pill"), dot = el("i"); dotStyle(dot, r.cat); pill.appendChild(dot); pill.appendChild(document.createTextNode(CAT[r.cat].short)); tc.appendChild(pill); tr.appendChild(tc);
       function toggle() { openCountry(S.open === r.ci ? -1 : r.ci, false); }
@@ -895,13 +958,18 @@ details.method summary { cursor: pointer; font-weight: 600; }
   }
 
   function detailRow(r) {
-    var tr = el("tr", "detail"), td = el("td"); td.colSpan = COLS.length; var det = el("div", "det");
+    var tr = el("tr", "detail"), td = el("td"); td.colSpan = cols().length; var det = el("div", "det");
     var hzName = S.hazard === "natural" ? "природных бедствий" : S.hazard === "all" ? "бедствий" : "событий типа «" + HZ[hIdx[S.hazard]][1].toLowerCase() + "»";
     var sum = el("p", "sum");
     sum.appendChild(document.createTextNode("За " + S.from + "–" + S.to + ": ")); sum.appendChild(el("strong", null, nf.format(r.events) + " " + hzName));
     sum.appendChild(document.createTextNode(", " + nf.format(r.deaths) + " погибших, " + cf.format(r.affected) + " пострадавших. Работ за " + S.from + "–" + (S.to + LAG) + ": "));
     sum.appendChild(el("strong", null, nf.format(r.papers)));
-    sum.appendChild(document.createTextNode(" (о помощи — " + nf.format(r.help) + ", РКИ — " + nf.format(r.rct) + "). Ожидалось ≈ " + nf1.format(r.expected) + (S.research === "help" ? " работ о помощи" : "") + ": " + (Math.abs(Math.log(r.ratio)) < 0.1 ? "почти столько же." : "фактически " + ratioText(r.ratio) + ".")));
+    var expText = r.expected == null
+      ? " Ожидаемое с поправкой на науку не считается: у Всемирного банка нет данных о числе научных статей страны."
+      : " Ожидалось ≈ " + nf1.format(r.expected) + (S.research === "help" ? " работ о помощи" : "") +
+        (S.model === "adj" ? " с учётом научного потенциала (" + big(r.capacity) + " научных статей в год по всем наукам)" : "") +
+        ": " + (Math.abs(Math.log(r.ratio)) < 0.1 ? "почти столько же." : "фактически " + ratioText(r.ratio) + ".");
+    sum.appendChild(document.createTextNode(" (о помощи — " + nf.format(r.help) + ", РКИ — " + nf.format(r.rct) + ")." + expText));
     det.appendChild(sum);
     var left = el("div");
     left.appendChild(el("h3", null, "По типам бедствий"));
@@ -976,31 +1044,33 @@ details.method summary { cursor: pointer; font-weight: 600; }
     { id: "emdat", col: 0, row: 0, title: "EM-DAT", sub: nf.format(T.emdat_events || 0) + " событий", desc: "Архив EM-DAT (CRED, UCLouvain), версия " + M.emdat_version + ": все бедствия 1900–2024 гг. Конвертируется в CSV.", file: "scripts/01_emdat_to_csv.py" },
     { id: "pubmed", col: 0, row: 1, title: "PubMed", sub: nf.format(T.publications || 0) + " записей", desc: "Выгрузка через NCBI E-utilities: работы 2000–2025 гг. о бедствиях и психике; сырые XML кешируются.", file: "scripts/02_fetch_pubmed.py" },
     { id: "ref", col: 0, row: 2, title: "Справочники", sub: "страны и шаблоны", desc: "Русские названия стран и регулярные выражения для их поиска в текстах — ручная работа проекта.", file: "data/reference/" },
+    { id: "wb", col: 0, row: 3, title: "Всемирный банк", sub: "научный потенциал", desc: "World Development Indicators: число научных и технических статей страны (по данным NSF), ВВП по ППС, население за 2000–2024 гг.", file: "scripts/04_fetch_worldbank.py" },
     { id: "t_emdat", col: 1, row: 0, title: "emdat_events", sub: nf.format(T.emdat_events || 0), desc: "События с типом, жертвами, пострадавшими, ущербом и затронутыми районами (jsonb).", file: "sql/01_schema.sql, sql/02_load.sql" },
     { id: "t_pubs", col: 1, row: 1, title: "publications", sub: nf.format(T.publications || 0), desc: "Работы: название, аннотация, журнал, DOI, тип публикации, флаги «учитывается», «о помощи», РКИ.", file: "sql/02_load.sql" },
     { id: "t_mesh", col: 1, row: 2, title: "publication_mesh", sub: nf.format(T.publication_mesh || 0), desc: "Рубрики MeSH. Географические рубрики показывают, где проводилось исследование.", file: "sql/02_load.sql" },
     { id: "t_aff", col: 1, row: 3, title: "publication_affiliations", sub: nf.format(T.publication_affiliations || 0), desc: "Места работы авторов в том виде, как они указаны в PubMed.", file: "sql/02_load.sql" },
     { id: "t_rules", col: 1, row: 4, title: "classification_rules", sub: nf.format(T.classification_rules || 0) + " правил", desc: "Правила разметки: тип бедствия, «о помощи», исключаемые контексты (COVID-19, теракты, войны).", file: "sql/01_schema.sql" },
     { id: "t_pat", col: 1, row: 5, title: "country_patterns", sub: nf.format(T.country_patterns || 0) + " шаблонов", desc: "Регулярные выражения для распознавания " + nf.format(T.countries || 0) + " стран в текстах, рубриках и аффилиациях.", file: "data/reference/country_patterns.csv" },
+    { id: "t_cap", col: 1, row: 6, title: "country_capacity", sub: nf.format(T.country_capacity || 0), desc: "Показатели Всемирного банка по странам и годам: научные статьи, ВВП по ППС, население.", file: "sql/09_capacity.sql" },
     { id: "c_tags", col: 2, row: 1, title: "publication_tags", sub: nf.format(T.publication_tags || 0), desc: "Метки работ по правилам: типы бедствий, help, контексты.", file: "sql/03_classify.sql" },
     { id: "c_pc", col: 2, row: 2, title: "publication_countries", sub: nf.format(T.publication_countries || 0), desc: "О какой стране работа: MeSH → название → аннотация.", file: "sql/03_classify.sql" },
     { id: "c_ac", col: 2, row: 3, title: "publication_author_countries", sub: nf.format(T.publication_author_countries || 0), desc: "Страны авторов по аффилиациям (распознано " + nf.format(T.affiliation_countries || 0) + " уникальных строк).", file: "sql/03_classify.sql" },
     { id: "v_dis", col: 3, row: 0.5, title: "v_disasters_country_year", sub: "представление", desc: "Бедствия по стране, году и типу с 2000 г.", file: "sql/04_analytics.sql" },
     { id: "v_pub", col: 3, row: 2, title: "v_publication_country", sub: "представление", desc: "Работы по странам: год, типы бедствий, о помощи ли, есть ли местный автор.", file: "sql/04_analytics.sql" },
-    { id: "gap", col: 3, row: 3.5, title: "gap_analysis()", sub: "функция", desc: "Ожидаемое число работ по регрессии и разрыв по каждой стране; параметры — годы, тип, мера нагрузки, вид работ.", file: "sql/04_analytics.sql" },
-    { id: "rob", col: 3, row: 5, title: "gap_analysis_variant()", sub: "11 проверок", desc: "Те же расчёты при других допущениях и пуассоновская модель — проверки устойчивости.", file: "sql/07_robustness.sql" },
-    { id: "page", col: 4, row: 1, title: "Эта страница", sub: "интерактив", desc: "Выгрузка базы в JSON и сборка HTML; расчёты повторены в браузере и совпадают с gap_analysis().", file: "sql/05_export_json.sql, scripts/03_build_html.py" },
-    { id: "report", col: 4, row: 2.5, title: "Отчёт", sub: "статья", desc: "Аналитический отчёт: методы, результаты, проверки устойчивости, литература. Все числа пересчитываются скриптом.", file: "sql/08_report_numbers.sql" },
-    { id: "results", col: 4, row: 4, title: "results/", sub: "вывод запросов", desc: "Вывод примеров запросов, проверок устойчивости и всех чисел отчёта.", file: "sql/06_examples.sql" }
+    { id: "gap", col: 3, row: 3.2, title: "gap_analysis()", sub: "функция", desc: "Ожидаемое число работ по регрессии и разрыв по каждой стране; параметры — годы, тип, мера нагрузки, вид работ.", file: "sql/04_analytics.sql" },
+    { id: "adj", col: 3, row: 4.4, title: "gap_analysis_adj()", sub: "поправка на науку", desc: "То же с поправкой на научный потенциал страны: в регрессию добавлено среднегодовое число научных статей. Сравнение с базовой моделью — в том же файле.", file: "sql/09_capacity.sql" },
+    { id: "rob", col: 3, row: 5.6, title: "gap_analysis_variant()", sub: "11 проверок", desc: "Те же расчёты при других допущениях и пуассоновская модель — проверки устойчивости.", file: "sql/07_robustness.sql" },
+    { id: "page", col: 4, row: 1.5, title: "Эта страница", sub: "интерактив", desc: "Выгрузка базы в JSON и сборка HTML; расчёты повторены в браузере и совпадают с gap_analysis() и gap_analysis_adj().", file: "sql/05_export_json.sql, scripts/03_build_html.py" },
+    { id: "results", col: 4, row: 4.4, title: "results/", sub: "вывод запросов", desc: "Вывод примеров запросов, проверок устойчивости, сравнения моделей и ключевых чисел проекта.", file: "sql/06_examples.sql, sql/08_report_numbers.sql" }
   ];
-  var EDGES = [["emdat", "t_emdat"], ["pubmed", "t_pubs"], ["pubmed", "t_mesh"], ["pubmed", "t_aff"], ["ref", "t_rules"], ["ref", "t_pat"],
+  var EDGES = [["emdat", "t_emdat"], ["pubmed", "t_pubs"], ["pubmed", "t_mesh"], ["pubmed", "t_aff"], ["ref", "t_rules"], ["ref", "t_pat"], ["wb", "t_cap"],
     ["t_pubs", "c_tags"], ["t_mesh", "c_tags"], ["t_rules", "c_tags"], ["t_pubs", "c_pc"], ["t_mesh", "c_pc"], ["t_pat", "c_pc"], ["t_aff", "c_ac"], ["t_pat", "c_ac"],
-    ["t_emdat", "v_dis"], ["c_tags", "v_pub"], ["c_pc", "v_pub"], ["c_ac", "v_pub"], ["v_dis", "gap"], ["v_pub", "gap"], ["gap", "rob"],
-    ["v_dis", "page"], ["v_pub", "page"], ["gap", "report"], ["rob", "report"], ["gap", "results"], ["rob", "results"]];
+    ["t_emdat", "v_dis"], ["c_tags", "v_pub"], ["c_pc", "v_pub"], ["c_ac", "v_pub"], ["v_dis", "gap"], ["v_pub", "gap"], ["gap", "rob"], ["gap", "adj"], ["t_cap", "adj"],
+    ["v_dis", "page"], ["v_pub", "page"], ["t_cap", "page"], ["gap", "results"], ["adj", "results"], ["rob", "results"]];
   var schemaSel = "gap";
   function renderSchema() {
     var host = document.getElementById("schema-plot"); host.textContent = "";
-    var W = 1140, colX = [10, 216, 462, 728, 966], colW = [170, 214, 236, 206, 164], rowH = 62, top = 34, bh = 46, H = top + rowH * 6 + 4;
+    var W = 1140, colX = [10, 216, 462, 728, 966], colW = [170, 214, 236, 206, 164], rowH = 62, top = 34, bh = 46, H = top + rowH * 7 + 4;
     var svg = sv("svg", { viewBox: "0 0 " + W + " " + H, role: "img", "aria-label": "Схема проекта: от источников данных к результатам" }, host);
     ["Источники", "Таблицы PostgreSQL", "Разметка (03_classify.sql)", "Аналитика", "Результаты"].forEach(function (h, i) { txt(svg, { x: colX[i], y: 18, "font-size": 12, fill: "#7b868c", "font-weight": 600 }, h.toUpperCase()); });
     var pos = {}; NODES.forEach(function (n) { pos[n.id] = { x: colX[n.col], y: top + n.row * rowH, w: colW[n.col] }; });
@@ -1056,6 +1126,13 @@ details.method summary { cursor: pointer; font-weight: 600; }
   var bAll = document.getElementById("f-res-all"), bHelp = document.getElementById("f-res-help");
   function setRes(v) { S.research = v; bAll.setAttribute("aria-pressed", String(v === "all")); bHelp.setAttribute("aria-pressed", String(v === "help")); render(); }
   bAll.addEventListener("click", function () { setRes("all"); }); bHelp.addEventListener("click", function () { setRes("help"); });
+  var bBase = document.getElementById("f-mod-base"), bAdj = document.getElementById("f-mod-adj");
+  function setModel(v) {
+    S.model = v; bBase.setAttribute("aria-pressed", String(v === "base")); bAdj.setAttribute("aria-pressed", String(v === "adj"));
+    if (v === "base") { if (S.cat === "nocap") S.cat = ""; if (S.sortKey === "capacity") { S.sortKey = "ratio"; S.sortDir = 1; } }
+    render();
+  }
+  bBase.addEventListener("click", function () { setModel("base"); }); bAdj.addEventListener("click", function () { setModel("adj"); });
 
   document.getElementById("m-emdat").textContent = M.emdat_version + " (" + nf.format(M.emdat_events) + " событий с 2000 г.)";
   document.getElementById("m-pubmed").textContent = M.pubmed_fetched;

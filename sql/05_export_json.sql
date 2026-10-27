@@ -62,7 +62,8 @@ SELECT json_build_object(
             'publication_tags',             (SELECT count(*) FROM publication_tags),
             'publication_countries',        (SELECT count(*) FROM publication_countries),
             'affiliation_countries',        (SELECT count(*) FROM affiliation_countries),
-            'publication_author_countries', (SELECT count(*) FROM publication_author_countries)
+            'publication_author_countries', (SELECT count(*) FROM publication_author_countries),
+            'country_capacity',             (SELECT count(*) FROM country_capacity)
         )
     ),
     'hazards',   (SELECT json_agg(json_build_array(hazard_code, name_ru, disaster_group) ORDER BY hi) FROM h),
@@ -79,6 +80,10 @@ SELECT json_build_object(
                                               COALESCE(author_cis, '[]'::json))
                              ORDER BY search_year DESC, pmid DESC)
              FROM pub),
+    -- [страна, год, научных статей] — Всемирный банк, для модели с поправкой на потенциал (sql/09_capacity.sql)
+    'cap', (SELECT json_agg(json_build_array(c.ci, k.year, round(k.value::numeric, 1)) ORDER BY c.ci, k.year)
+            FROM country_capacity k JOIN c USING (iso3)
+            WHERE k.indicator = 'IP.JRN.ARTC.SC'),
     -- [страна, год, тип, описание, погибших, пострадавших] — для раскрывающейся карточки страны
     'ev', (SELECT json_agg(json_build_array(c.ci, e.start_year, h.hi,
                                             left(concat_ws(' — ', COALESCE(st.name_ru, e.disaster_subtype),
